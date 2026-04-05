@@ -4,7 +4,7 @@ import {
   GREENHOUSES,
   type Greenhouse,
   type GreenhouseSummary,
-} from "@greenspace/shared";
+} from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { fonts, colors } from "@/styles/theme";
 import { GreenhouseCard } from "./GreenhouseCard";

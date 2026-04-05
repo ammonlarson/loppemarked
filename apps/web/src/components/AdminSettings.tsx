@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { OPENING_TIMEZONE } from "@greenspace/shared";
+import { OPENING_TIMEZONE } from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { colors, fonts } from "@/styles/theme";
 import { AdminNotificationPreferences } from "./AdminNotificationPreferences";

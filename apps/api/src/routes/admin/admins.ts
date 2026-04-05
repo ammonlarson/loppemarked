@@ -1,4 +1,4 @@
-import { validateEmail } from "@greenspace/shared";
+import { validateEmail } from "@loppemarked/shared";
 import { logAuditEvent } from "../../lib/audit.js";
 import { badRequest, conflict, notFound, unauthorized } from "../../lib/errors.js";
 import { hashPassword } from "../../lib/password.js";

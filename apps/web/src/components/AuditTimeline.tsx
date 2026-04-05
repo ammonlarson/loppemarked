@@ -1,6 +1,6 @@
 "use client";
 
-import { AUDIT_ACTIONS } from "@greenspace/shared";
+import { AUDIT_ACTIONS } from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { translations, type TranslationKey } from "@/i18n/translations";
 import { colors, fonts } from "@/styles/theme";

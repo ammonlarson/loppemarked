@@ -4,7 +4,7 @@
 
 ### 1.1 Product
 - Product name: UN17 Village Rooftop Gardens
-- URL: `greenspace.un17hub.com`
+- URL: `loppemarked.un17hub.com`
 - Season: 2026
 - Purpose: allow eligible UN17 residents to register for rooftop planter boxes in two greenhouses (Kronen and Søen), with bilingual Danish/English UX and admin management.
 
@@ -188,7 +188,7 @@ Søen:
 ### 6.4 Email on Admin Changes
 - For add/move/remove, email toggle defaults to ON.
 - Admin can edit default message before sending.
-- Emails sent from `greenspace@un17hub.com`.
+- Emails sent from `loppemarked@un17hub.com`.
 - Reply-To set to `elise7284@gmail.com`.
 
 ### 6.5 Opening Window Management
@@ -203,7 +203,7 @@ Søen:
 ## 7. Email Behavior
 
 ### 7.1 Sender Setup
-- From: `greenspace@un17hub.com`
+- From: `loppemarked@un17hub.com`
 - Reply-To: `elise7284@gmail.com`
 - Provider: AWS SES
 
@@ -327,7 +327,7 @@ Søen:
 
 ### 12.1 Frontend
 - Next.js web app deployed to AWS Amplify Hosting.
-- Domain mapping for `greenspace.un17hub.com`.
+- Domain mapping for `loppemarked.un17hub.com`.
 
 ### 12.2 Backend
 - API Gateway + Lambda (Node.js/TypeScript) for public/admin APIs.
@@ -358,7 +358,7 @@ Søen:
   - DynamoDB table for state locking
   - state versioning enabled
 - Environments:
-  - `prod` (live at `greenspace.un17hub.com`)
+  - `prod` (live at `loppemarked.un17hub.com`)
   - `staging` (pre-release verification)
 - Each environment uses isolated state and isolated app/database resources.
 
@@ -386,7 +386,7 @@ Søen:
 
 ### 12.9 IaC Tagging and Naming
 - All resources must have consistent tags:
-  - `project=greenspace`
+  - `project=loppemarked`
   - `season=2026`
   - `environment=<env>`
   - `managed_by=terraform`
@@ -466,7 +466,7 @@ Søen:
 - Waitlist preserves earliest timestamp for repeat apartment submissions.
 - Admin remove flow offers public vs reserved decision.
 - Every critical change appears in audit history with actor and before/after.
-- Emails are sent from `greenspace@un17hub.com` with correct language and care guidelines.
+- Emails are sent from `loppemarked@un17hub.com` with correct language and care guidelines.
 - Admins can create/delete other admins and change own password.
 - All persistent AWS resources are defined in Terraform and deployed through CI/CD.
 - `terraform plan` (or OpenTofu equivalent) is clean after apply in each environment.

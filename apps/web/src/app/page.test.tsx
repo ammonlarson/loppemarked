@@ -9,7 +9,7 @@ import {
   ORGANIZER_CONTACTS,
   BOX_CATALOG,
   BOX_STATES,
-} from "@greenspace/shared";
+} from "@loppemarked/shared";
 import { translations, type TranslationKey } from "@/i18n/translations";
 import { isBeforeOpening } from "@/utils/opening";
 

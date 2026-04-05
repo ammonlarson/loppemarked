@@ -7,11 +7,11 @@ variable "aws_region" {
 variable "state_bucket_name" {
   description = "Name of the S3 bucket for Terraform remote state."
   type        = string
-  default     = "greenspace-2026-tfstate"
+  default     = "loppemarked-2026-tfstate"
 }
 
 variable "lock_table_name" {
   description = "Name of the DynamoDB table for Terraform state locking."
   type        = string
-  default     = "greenspace-2026-tflock"
+  default     = "loppemarked-2026-tflock"
 }

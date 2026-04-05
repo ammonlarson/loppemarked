@@ -17,7 +17,7 @@ jobs:
       - name: Validate required guardrail files
         run: |
           test -f CLAUDE.md
-          test -f docs/specs/greenspace-2026-spec.md
+          test -f docs/specs/loppemarked-2026-spec.md
           test -f docs/api/openapi.yaml
           test -f docs/data/schema.md
           test -f .github/pull_request_template.md

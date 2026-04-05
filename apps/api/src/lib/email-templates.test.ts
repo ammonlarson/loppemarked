@@ -58,7 +58,7 @@ describe("buildConfirmationEmail", () => {
 
   it("uses correct from and replyTo addresses", () => {
     const result = buildConfirmationEmail(baseData);
-    expect(result.from).toBe("greenspace@un17hub.com");
+    expect(result.from).toBe("loppemarked@un17hub.com");
     expect(result.replyTo).toBe("elise7284@gmail.com");
   });
 

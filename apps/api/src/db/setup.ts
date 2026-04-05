@@ -10,8 +10,8 @@ async function main() {
   const db = createDatabase({
     host: process.env["DB_HOST"] ?? "localhost",
     port: Number(process.env["DB_PORT"] ?? "5432"),
-    database: process.env["DB_NAME"] ?? "greenspace",
-    user: process.env["DB_USER"] ?? "greenspace",
+    database: process.env["DB_NAME"] ?? "loppemarked",
+    user: process.env["DB_USER"] ?? "loppemarked",
     password: process.env["DB_PASSWORD"] ?? "",
     ssl: process.env["DB_SSL"] === "true",
   });

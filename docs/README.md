@@ -6,7 +6,7 @@ Project documentation for UN17 Village Rooftop Gardens.
 
 | Path | Description |
 |------|-------------|
-| [specs/greenspace-2026-spec.md](specs/greenspace-2026-spec.md) | Full product and technical specification |
+| [specs/loppemarked-2026-spec.md](specs/loppemarked-2026-spec.md) | Full product and technical specification |
 | [architecture.md](architecture.md) | System architecture overview with diagrams |
 | [api/openapi.yaml](api/openapi.yaml) | OpenAPI 3.1 contract for all public and admin endpoints |
 | [data/schema.md](data/schema.md) | Data contract, entity list, and critical invariants |

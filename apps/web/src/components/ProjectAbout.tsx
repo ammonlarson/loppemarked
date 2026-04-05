@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ORGANIZER_CONTACTS } from "@greenspace/shared";
+import { ORGANIZER_CONTACTS } from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { colors, fonts } from "@/styles/theme";
 

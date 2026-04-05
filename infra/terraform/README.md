@@ -15,7 +15,7 @@ infra/terraform/
 │   ├── prod/main.tf    # Production stack (isolated state)
 │   └── staging/main.tf # Staging stack (isolated state)
 └── modules/
-    └── greenspace_stack/  # Shared module composing AWS resources
+    └── loppemarked_stack/  # Shared module composing AWS resources
 ```
 
 ## Conventions
@@ -23,7 +23,7 @@ infra/terraform/
 - Use one environment directory per deploy target.
 - Keep modules focused and composable.
 - Tag all resources with:
-  - `project=greenspace`
+  - `project=loppemarked`
   - `season=2026`
   - `environment=<env>`
   - `managed_by=terraform`
@@ -34,8 +34,8 @@ Remote state uses an S3 bucket with DynamoDB locking.
 
 | Resource        | Name                       |
 |-----------------|----------------------------|
-| S3 bucket       | `greenspace-2026-tfstate`  |
-| DynamoDB table  | `greenspace-2026-tflock`   |
+| S3 bucket       | `loppemarked-2026-tfstate`  |
+| DynamoDB table  | `loppemarked-2026-tflock`   |
 | Region          | `eu-north-1`               |
 
 State paths are isolated per environment:
@@ -153,8 +153,8 @@ Each environment provisions an AWS Amplify app for the Next.js frontend
 
 | Environment | Domain                              |
 | ----------- | ----------------------------------- |
-| staging     | `greenspace.staging.un17hub.com`    |
-| production  | `greenspace.un17hub.com`            |
+| staging     | `loppemarked.staging.un17hub.com`    |
+| production  | `loppemarked.un17hub.com`            |
 
 ### TLS
 

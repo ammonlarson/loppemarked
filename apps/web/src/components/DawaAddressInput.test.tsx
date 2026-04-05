@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act, cleanup } from "@testing-library/react";
 import { DawaAddressInput, type DawaAddressResult } from "./DawaAddressInput";
-import type { DawaAutocompleteSuggestion } from "@greenspace/shared";
+import type { DawaAutocompleteSuggestion } from "@loppemarked/shared";
 
 vi.mock("@/i18n/LanguageProvider", () => ({
   useLanguage: () => ({ language: "en", setLanguage: vi.fn(), t: (key: string) => key }),

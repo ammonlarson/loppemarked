@@ -3,7 +3,7 @@
 import Image from "next/image";
 import {
   OPENING_TIMEZONE,
-} from "@greenspace/shared";
+} from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { colors, fonts } from "@/styles/theme";
 

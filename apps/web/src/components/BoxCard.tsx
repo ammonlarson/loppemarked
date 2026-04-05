@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { PublicBoxState } from "@greenspace/shared";
+import type { PublicBoxState } from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { BOX_STATE_COLORS } from "./boxStateColors";
 import { colors as themeColors, fonts } from "@/styles/theme";

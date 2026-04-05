@@ -1,8 +1,8 @@
 import {
   BOX_CATALOG,
   ORGANIZER_CONTACTS,
-} from "@greenspace/shared";
-import type { Language } from "@greenspace/shared";
+} from "@loppemarked/shared";
+import type { Language } from "@loppemarked/shared";
 
 export type AdminNotificationAction = "add" | "move" | "remove" | "waitlist_assign";
 

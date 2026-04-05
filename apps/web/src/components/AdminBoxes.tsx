@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { BoxState } from "@greenspace/shared";
+import type { BoxState } from "@loppemarked/shared";
 import {
   ELIGIBLE_STREET,
   HOUSE_NUMBER_MIN,
   HOUSE_NUMBER_MAX,
   isFloorDoorRequired,
   validateRegistrationInput,
-} from "@greenspace/shared";
+} from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import {
   colors,

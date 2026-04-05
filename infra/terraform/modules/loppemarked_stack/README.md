@@ -1,4 +1,4 @@
-# greenspace_stack module
+# loppemarked_stack module
 
 Composable Terraform module for all UN17 Village Rooftop Gardens AWS resources. Used by both
 the staging and production environment stacks.
@@ -23,15 +23,15 @@ where resource-level scoping is possible.
 ## SES email configuration
 
 Each environment provisions its own SES domain identity, DKIM signing, and
-configuration set. Sender addresses default to `greenspace@<ses_sender_domain>`
+configuration set. Sender addresses default to `loppemarked@<ses_sender_domain>`
 and can be overridden via `ses_sender_email`. Reply-To defaults to
 `elise7284@gmail.com` (spec default) and can be overridden via
 `ses_reply_to_email`.
 
 | Environment | Domain                 | Sender address                        | Reply-To                |
 |-------------|------------------------|---------------------------------------|-------------------------|
-| staging     | `staging.un17hub.com`  | `greenspace@staging.un17hub.com`      | `elise7284@gmail.com`   |
-| prod        | `un17hub.com`          | `greenspace@un17hub.com`              | `elise7284@gmail.com`   |
+| staging     | `staging.un17hub.com`  | `loppemarked@staging.un17hub.com`      | `elise7284@gmail.com`   |
+| prod        | `un17hub.com`          | `loppemarked@un17hub.com`              | `elise7284@gmail.com`   |
 
 ### DNS verification
 
