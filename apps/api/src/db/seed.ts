@@ -5,7 +5,7 @@ import {
   GREENHOUSES,
   OPENING_TIMEZONE,
   SEED_ADMIN_EMAILS,
-} from "@greenspace/shared";
+} from "@loppemarked/shared";
 
 import type { Database } from "./types.js";
 

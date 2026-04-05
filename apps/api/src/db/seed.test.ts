@@ -6,7 +6,7 @@ import {
   TOTAL_BOX_COUNT,
   KRONEN_BOX_RANGE,
   SOEN_BOX_RANGE,
-} from "@greenspace/shared";
+} from "@loppemarked/shared";
 
 import { getGreenhouseRows, getBoxRows, getAdminEmails } from "./seed.js";
 

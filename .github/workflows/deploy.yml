@@ -33,7 +33,7 @@ jobs:
         run: npm ci
 
       - name: Bundle for Lambda
-        run: npm run bundle --workspace=@greenspace/api
+        run: npm run bundle --workspace=@loppemarked/api
 
       - name: Create deployment zip
         working-directory: apps/api/dist/lambda

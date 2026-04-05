@@ -14,13 +14,13 @@ This runbook covers RDS automated backup management and point-in-time restore pr
 | Final snapshot on delete | No | Yes |
 | Encryption | KMS (data key) | KMS (data key) |
 
-Backups are configured via Terraform in `infra/terraform/modules/greenspace_stack/database.tf`.
+Backups are configured via Terraform in `infra/terraform/modules/loppemarked_stack/database.tf`.
 
 ## Listing Available Backups
 
 ```bash
 aws rds describe-db-snapshots \
-  --db-instance-identifier greenspace-<environment>-2026-postgres \
+  --db-instance-identifier loppemarked-<environment>-2026-postgres \
   --query "DBSnapshots[*].{ID:DBSnapshotIdentifier,Created:SnapshotCreateTime,Status:Status}" \
   --output table \
   --region eu-north-1
@@ -38,11 +38,11 @@ Determine the exact UTC timestamp to restore to. This is typically just before t
 
 ```bash
 aws rds restore-db-instance-to-point-in-time \
-  --source-db-instance-identifier greenspace-<environment>-2026-postgres \
-  --target-db-instance-identifier greenspace-<environment>-2026-postgres-restored \
+  --source-db-instance-identifier loppemarked-<environment>-2026-postgres \
+  --target-db-instance-identifier loppemarked-<environment>-2026-postgres-restored \
   --restore-time "2026-03-01T12:00:00Z" \
   --db-instance-class db.t4g.small \
-  --db-subnet-group-name greenspace-<environment>-2026-db \
+  --db-subnet-group-name loppemarked-<environment>-2026-db \
   --vpc-security-group-ids <db-security-group-id> \
   --no-multi-az \
   --region eu-north-1
@@ -56,7 +56,7 @@ aws rds restore-db-instance-to-point-in-time \
 
 ```bash
 aws rds wait db-instance-available \
-  --db-instance-identifier greenspace-<environment>-2026-postgres-restored \
+  --db-instance-identifier loppemarked-<environment>-2026-postgres-restored \
   --region eu-north-1
 ```
 
@@ -65,7 +65,7 @@ aws rds wait db-instance-available \
 Connect to the restored instance and verify:
 
 ```bash
-psql -h <restored-endpoint> -U greenspace -d greenspace -c "
+psql -h <restored-endpoint> -U loppemarked -d loppemarked -c "
   SELECT COUNT(*) FROM registrations;
   SELECT COUNT(*) FROM emails;
   SELECT MAX(created_at) FROM audit_events;
@@ -90,7 +90,7 @@ If the restore was a drill or the restored instance is no longer needed:
 
 ```bash
 aws rds delete-db-instance \
-  --db-instance-identifier greenspace-<environment>-2026-postgres-restored \
+  --db-instance-identifier loppemarked-<environment>-2026-postgres-restored \
   --skip-final-snapshot \
   --region eu-north-1
 ```
@@ -101,10 +101,10 @@ To restore from a specific snapshot instead of point-in-time:
 
 ```bash
 aws rds restore-db-instance-from-db-snapshot \
-  --db-instance-identifier greenspace-<environment>-2026-postgres-restored \
+  --db-instance-identifier loppemarked-<environment>-2026-postgres-restored \
   --db-snapshot-identifier <snapshot-identifier> \
   --db-instance-class db.t4g.small \
-  --db-subnet-group-name greenspace-<environment>-2026-db \
+  --db-subnet-group-name loppemarked-<environment>-2026-db \
   --vpc-security-group-ids <db-security-group-id> \
   --region eu-north-1
 ```
@@ -121,5 +121,5 @@ Run a restore drill quarterly to verify backup integrity:
 ## References
 
 - [RDS Point-in-Time Recovery](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIT.html)
-- Database Terraform config: `infra/terraform/modules/greenspace_stack/database.tf`
+- Database Terraform config: `infra/terraform/modules/loppemarked_stack/database.tf`
 - Incident triage: `docs/runbooks/incident-triage.md`

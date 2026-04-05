@@ -59,7 +59,7 @@ export const DEFAULT_OPENING_DATETIME = "2026-04-01T10:00:00" as const;
 export const OPENING_TIMEZONE = "Europe/Copenhagen" as const;
 
 /** Email sender configuration */
-export const EMAIL_FROM = "greenspace@un17hub.com" as const;
+export const EMAIL_FROM = "loppemarked@un17hub.com" as const;
 export const EMAIL_REPLY_TO = "elise7284@gmail.com" as const;
 export const EMAIL_FROM_NAMES: Record<"da" | "en", string> = {
   da: "UN17 Village Taghaver",

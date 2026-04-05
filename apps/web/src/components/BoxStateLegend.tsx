@@ -1,6 +1,6 @@
 "use client";
 
-import { PUBLIC_BOX_STATES } from "@greenspace/shared";
+import { PUBLIC_BOX_STATES } from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { BOX_STATE_COLORS } from "./boxStateColors";
 import { colors as themeColors, fonts } from "@/styles/theme";

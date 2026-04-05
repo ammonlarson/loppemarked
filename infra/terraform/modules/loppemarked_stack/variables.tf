@@ -1,7 +1,7 @@
 variable "project" {
   description = "Project tag and naming prefix."
   type        = string
-  default     = "greenspace"
+  default     = "loppemarked"
 }
 
 variable "season" {
@@ -62,19 +62,19 @@ variable "github_oidc_provider_arn" {
 variable "github_repo" {
   description = "GitHub repository in owner/name format for OIDC trust."
   type        = string
-  default     = "ammonlarson/greenspace"
+  default     = "ammonlarson/loppemarked"
 }
 
 variable "tf_state_bucket" {
   description = "S3 bucket name for Terraform remote state."
   type        = string
-  default     = "greenspace-2026-tfstate"
+  default     = "loppemarked-2026-tfstate"
 }
 
 variable "tf_lock_table" {
   description = "DynamoDB table name for Terraform state locking."
   type        = string
-  default     = "greenspace-2026-tflock"
+  default     = "loppemarked-2026-tflock"
 }
 
 variable "github_environment" {
@@ -94,7 +94,7 @@ variable "ses_sender_domain" {
 }
 
 variable "ses_sender_email" {
-  description = "Default From address for outbound email. Defaults to greenspace@<ses_sender_domain>."
+  description = "Default From address for outbound email. Defaults to loppemarked@<ses_sender_domain>."
   type        = string
   default     = null
 }
@@ -132,9 +132,9 @@ variable "amplify_preview_branch_patterns" {
 }
 
 variable "amplify_domain_prefix" {
-  description = "Subdomain prefix for the Amplify custom domain (e.g. 'greenspace' → greenspace.<domain>)."
+  description = "Subdomain prefix for the Amplify custom domain (e.g. 'loppemarked' → loppemarked.<domain>)."
   type        = string
-  default     = "greenspace"
+  default     = "loppemarked"
 
   validation {
     condition     = can(regex("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$", var.amplify_domain_prefix))
@@ -217,13 +217,13 @@ variable "db_multi_az" {
 variable "db_name" {
   description = "Name of the default database to create."
   type        = string
-  default     = "greenspace"
+  default     = "loppemarked"
 }
 
 variable "db_master_username" {
   description = "Master username for the RDS instance."
   type        = string
-  default     = "greenspace"
+  default     = "loppemarked"
 }
 
 # ---------- Monitoring ----------

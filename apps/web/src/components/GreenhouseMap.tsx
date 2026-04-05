@@ -1,6 +1,6 @@
 "use client";
 
-import type { PlanterBoxPublic } from "@greenspace/shared";
+import type { PlanterBoxPublic } from "@loppemarked/shared";
 import { BoxCard } from "./BoxCard";
 import { fonts } from "@/styles/theme";
 

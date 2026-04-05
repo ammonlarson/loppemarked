@@ -5,7 +5,7 @@ info:
   description: >
     Contract-first API skeleton for UN17 Village Rooftop Gardens registration and admin operations.
 servers:
-  - url: https://greenspace.un17hub.com
+  - url: https://loppemarked.un17hub.com
 tags:
   - name: Public
   - name: Admin

@@ -6,8 +6,8 @@ import {
   validateAddress,
   validateRegistrationInput,
   validateWaitlistInput,
-} from "@greenspace/shared";
-import type { RegistrationInput, WaitlistInput } from "@greenspace/shared";
+} from "@loppemarked/shared";
+import type { RegistrationInput, WaitlistInput } from "@loppemarked/shared";
 import { logAuditEvent } from "../lib/audit.js";
 import { notifyAdmins } from "../lib/admin-ops-notifications.js";
 import { buildConfirmationEmail } from "../lib/email-templates.js";

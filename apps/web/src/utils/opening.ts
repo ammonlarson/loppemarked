@@ -1,4 +1,4 @@
-import { OPENING_TIMEZONE } from "@greenspace/shared";
+import { OPENING_TIMEZONE } from "@loppemarked/shared";
 
 /**
  * Compare current time against the opening datetime.

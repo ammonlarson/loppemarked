@@ -13,7 +13,7 @@ import {
   DEFAULT_LANGUAGE,
   LANGUAGES,
   type Language,
-} from "@greenspace/shared";
+} from "@loppemarked/shared";
 import { translations, type TranslationKey } from "./translations";
 
 interface LanguageContextValue {
@@ -25,7 +25,7 @@ interface LanguageContextValue {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
-const STORAGE_KEY = "greenspace-language";
+const STORAGE_KEY = "loppemarked-language";
 
 function detectBrowserLanguage(): Language {
   if (typeof navigator === "undefined") return DEFAULT_LANGUAGE;

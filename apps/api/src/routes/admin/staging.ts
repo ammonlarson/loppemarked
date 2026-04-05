@@ -1,4 +1,4 @@
-import { BOX_CATALOG, ELIGIBLE_STREET, normalizeApartmentKey } from "@greenspace/shared";
+import { BOX_CATALOG, ELIGIBLE_STREET, normalizeApartmentKey } from "@loppemarked/shared";
 import { logAuditEvent } from "../../lib/audit.js";
 import { badRequest, unauthorized } from "../../lib/errors.js";
 import type { RequestContext, RouteResponse } from "../../router.js";

@@ -1,6 +1,6 @@
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 import type { Kysely, Transaction } from "kysely";
-import { EMAIL_FROM as DEFAULT_EMAIL_FROM, EMAIL_FROM_NAMES, EMAIL_REPLY_TO as DEFAULT_EMAIL_REPLY_TO } from "@greenspace/shared";
+import { EMAIL_FROM as DEFAULT_EMAIL_FROM, EMAIL_FROM_NAMES, EMAIL_REPLY_TO as DEFAULT_EMAIL_REPLY_TO } from "@loppemarked/shared";
 import type { Database } from "../db/types.js";
 import { logAuditEvent } from "./audit.js";
 import { logger } from "./logger.js";

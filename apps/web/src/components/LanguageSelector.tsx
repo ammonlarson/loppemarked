@@ -1,6 +1,6 @@
 "use client";
 
-import { LANGUAGES, LANGUAGE_LABELS, type Language } from "@greenspace/shared";
+import { LANGUAGES, LANGUAGE_LABELS, type Language } from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { colors, fonts } from "@/styles/theme";
 

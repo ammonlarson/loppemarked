@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { Greenhouse } from "@greenspace/shared";
+import type { Greenhouse } from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { colors, fonts, shadows } from "@/styles/theme";
 

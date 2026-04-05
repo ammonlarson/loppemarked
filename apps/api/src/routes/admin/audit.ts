@@ -1,5 +1,5 @@
-import { AUDIT_ACTIONS } from "@greenspace/shared";
-import type { AuditAction } from "@greenspace/shared";
+import { AUDIT_ACTIONS } from "@loppemarked/shared";
+import type { AuditAction } from "@loppemarked/shared";
 import { badRequest, unauthorized } from "../../lib/errors.js";
 import type { RequestContext, RouteResponse } from "../../router.js";
 

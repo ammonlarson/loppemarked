@@ -7,7 +7,7 @@ import {
   type Greenhouse,
   type GreenhouseSummary,
   type PlanterBoxPublic,
-} from "@greenspace/shared";
+} from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useHistoryState } from "@/hooks/useHistoryState";
 import { LoadingSplash } from "./LoadingSplash";

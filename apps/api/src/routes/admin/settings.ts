@@ -1,4 +1,4 @@
-import { OPENING_TIMEZONE } from "@greenspace/shared";
+import { OPENING_TIMEZONE } from "@loppemarked/shared";
 import type { Transaction } from "kysely";
 import { badRequest, unauthorized } from "../../lib/errors.js";
 import { logAuditEvent } from "../../lib/audit.js";

@@ -36,7 +36,7 @@ import {
   GREENHOUSES,
   validateAddress,
   type PlanterBoxPublic,
-} from "@greenspace/shared";
+} from "@loppemarked/shared";
 ```
 
 ## Scripts

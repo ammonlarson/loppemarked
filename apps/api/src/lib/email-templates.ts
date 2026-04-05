@@ -4,8 +4,8 @@ import {
   EMAIL_REPLY_TO,
   ORGANIZER_CONTACTS,
   WHATSAPP_GROUP_URL,
-} from "@greenspace/shared";
-import type { Language } from "@greenspace/shared";
+} from "@loppemarked/shared";
+import type { Language } from "@loppemarked/shared";
 
 export interface ConfirmationEmailData {
   recipientName: string;
