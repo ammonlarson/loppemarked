@@ -1,0 +1,429 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import {
+  BOX_CATALOG,
+  ELIGIBLE_STREET,
+  HOUSE_NUMBER_MIN,
+  HOUSE_NUMBER_MAX,
+  ORGANIZER_CONTACTS,
+  isFloorDoorRequired,
+  validateRegistrationInput,
+  type Language,
+} from "@greenspace/shared";
+import { useLanguage } from "@/i18n/LanguageProvider";
+import { colors, fonts, shadows, alertError } from "@/styles/theme";
+import { SwitchConfirmationDialog, type SwitchDetails } from "./SwitchConfirmationDialog";
+
+interface RegistrationFormProps {
+  boxId: number;
+  onCancel: () => void;
+  onBoxUnavailable?: () => void;
+  onSuccess?: () => void;
+}
+
+export function RegistrationForm({ boxId, onCancel, onBoxUnavailable, onSuccess }: RegistrationFormProps) {
+  const { language, t } = useLanguage();
+  const box = BOX_CATALOG.find((b) => b.id === boxId);
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [houseNumber, setHouseNumber] = useState("");
+  const [floor, setFloor] = useState("");
+  const [door, setDoor] = useState("");
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [switchDetails, setSwitchDetails] = useState<SwitchDetails | null>(null);
+  const [confirmingSwitch, setConfirmingSwitch] = useState(false);
+
+  const parsedHouseNumber = parseInt(houseNumber, 10);
+  const needsUnitFields = !isNaN(parsedHouseNumber) && isFloorDoorRequired(parsedHouseNumber);
+
+  function buildPayload(opts?: { confirmSwitch?: boolean }) {
+    return {
+      name: name.trim(),
+      email: email.trim(),
+      street: ELIGIBLE_STREET,
+      houseNumber: parsedHouseNumber,
+      floor: floor.trim() || null,
+      door: door.trim() || null,
+      language: language as Language,
+      boxId,
+      ...opts,
+    };
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErrors([]);
+
+    if (!consentChecked) {
+      setErrors([t("consent.required")]);
+      return;
+    }
+
+    const input = buildPayload();
+
+    const validation = validateRegistrationInput(input);
+    if (!validation.valid) {
+      const fieldErrors: string[] = [];
+      if (validation.errors["name"]) fieldErrors.push(t("validation.nameRequired"));
+      if (validation.errors["email"]) {
+        const isRequired = validation.errors["email"].toLowerCase().includes("required");
+        fieldErrors.push(t(isRequired ? "validation.emailRequired" : "validation.emailInvalid"));
+      }
+      if (validation.errors["houseNumber"]) fieldErrors.push(t("validation.houseNumberInvalid"));
+      if (validation.errors["floorDoor"]) fieldErrors.push(t("validation.floorDoorRequired"));
+      if (validation.errors["boxId"]) fieldErrors.push(t("validation.boxIdInvalid"));
+      setErrors(fieldErrors.length > 0 ? fieldErrors : [t("common.error")]);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/public/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        if (res.status === 409 && body?.code === "SWITCH_REQUIRED") {
+          setSwitchDetails({
+            existingBoxId: body.existingBoxId,
+            existingBoxName: body.existingBoxName,
+            existingGreenhouse: body.existingGreenhouse,
+            newBoxId: body.newBoxId,
+            newBoxName: body.newBoxName,
+            newGreenhouse: body.newGreenhouse,
+          });
+          return;
+        }
+        if (body?.code === "BOX_UNAVAILABLE" && onBoxUnavailable) {
+          onBoxUnavailable();
+          return;
+        }
+        setErrors([body?.error ?? t("common.error")]);
+        return;
+      }
+
+      setSuccess(true);
+    } catch {
+      setErrors([t("common.error")]);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleConfirmSwitch() {
+    const input = buildPayload({ confirmSwitch: true });
+    setConfirmingSwitch(true);
+    setErrors([]);
+    try {
+      const res = await fetch("/public/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setSwitchDetails(null);
+        setErrors([body?.error ?? t("common.error")]);
+        return;
+      }
+
+      setSuccess(true);
+      setSwitchDetails(null);
+    } catch {
+      setSwitchDetails(null);
+      setErrors([t("common.error")]);
+    } finally {
+      setConfirmingSwitch(false);
+    }
+  }
+
+  function handleCancelSwitch() {
+    setSwitchDetails(null);
+  }
+
+  if (switchDetails) {
+    return (
+      <section style={{ maxWidth: 560, margin: "0 auto", padding: "2rem 1rem", fontFamily: fonts.body, color: colors.inkBrown }}>
+        <SwitchConfirmationDialog
+          switchDetails={switchDetails}
+          onConfirm={handleConfirmSwitch}
+          onCancel={handleCancelSwitch}
+          confirming={confirmingSwitch}
+        />
+      </section>
+    );
+  }
+
+  if (success) {
+    return (
+      <section style={{ maxWidth: 560, margin: "0 auto", padding: "2rem 1rem", fontFamily: fonts.body, color: colors.inkBrown }}>
+        <h2 style={{ color: colors.sageDark, fontFamily: fonts.heading }}>{t("registration.success")}</h2>
+        <p style={{ marginTop: "1rem" }}>
+          {t("registration.unregisterInfo")}
+        </p>
+        <button
+          type="button"
+          onClick={onSuccess ?? onCancel}
+          style={{
+            marginTop: "1.5rem",
+            padding: "0.5rem 1.25rem",
+            background: colors.sage,
+            color: colors.white,
+            border: "none",
+            borderRadius: 6,
+            cursor: "pointer",
+            fontFamily: fonts.body,
+            fontSize: "0.95rem",
+            fontWeight: 600,
+          }}
+        >
+          {t("common.close")}
+        </button>
+      </section>
+    );
+  }
+
+  return (
+    <section style={{ maxWidth: 560, margin: "0 auto", padding: "2rem 1rem", fontFamily: fonts.body, color: colors.inkBrown }}>
+      <button
+        type="button"
+        onClick={onCancel}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          fontSize: "0.9rem",
+          color: colors.warmBrown,
+          padding: "0.25rem 0",
+          marginBottom: "1rem",
+          fontFamily: fonts.body,
+        }}
+      >
+        &larr; {t("common.cancel")}
+      </button>
+
+      <h2 style={{ textAlign: "center", margin: "0 0 1.5rem", fontFamily: fonts.heading, color: colors.warmBrown }}>{t("registration.formTitle")}</h2>
+      {box && (
+        <div style={{ textAlign: "center", margin: "0.5rem 0 1.5rem" }}>
+          <div style={{
+            display: "inline-block",
+            borderRadius: 12,
+            border: `2px solid ${colors.borderTan}`,
+            boxShadow: `
+              1px 1px 0 ${colors.borderTan},
+              -1px -1px 0 ${colors.borderTan},
+              2px 0 0 ${colors.parchment},
+              -2px 0 0 ${colors.parchment},
+              0 2px 0 ${colors.parchment},
+              0 -2px 0 ${colors.parchment}
+            `,
+            padding: 8,
+            background: colors.white,
+          }}>
+            <Image
+              src={`/${box.name.toLowerCase().replace(/ /g, "_")}_lg.png`}
+              alt={box.name}
+              width={240}
+              height={240}
+              style={{ objectFit: "contain", borderRadius: 8, display: "block" }}
+            />
+          </div>
+          <p style={{ color: colors.warmBrown, margin: "0.5rem 0 0.75rem", fontSize: "1.75rem", fontWeight: 300, fontFamily: fonts.heading }}>
+            <strong>{box.name}</strong> ({box.greenhouse})
+          </p>
+        </div>
+      )}
+
+      <div style={infoCardStyle}>
+        <p style={{ margin: "0 0 0.5rem" }}>{t("policy.oneApartmentRule")}</p>
+        <p style={{ margin: 0 }}>{t("policy.noSelfUnregister")}</p>
+      </div>
+
+      <details style={infoCardStyle}>
+        <summary style={{ fontWeight: 600, cursor: "pointer", color: colors.warmBrown }}>
+          {t("guidelines.title")}
+        </summary>
+
+        <p style={guidelinesSectionHeadingStyle}>{t("guidelines.rulesTitle")}</p>
+        <ul style={guidelinesListStyle}>
+          <li>{t("guidelines.plantingDeadline")}</li>
+          <li>{t("guidelines.forfeit")}</li>
+          <li>{t("guidelines.ruleWatering")}</li>
+          <li>{t("guidelines.ruleOrganic")}</li>
+          <li>{t("guidelines.ruleNoHarvest")}</li>
+        </ul>
+
+        <p style={guidelinesSectionHeadingStyle}>{t("guidelines.supportTitle")}</p>
+        <ul style={guidelinesListStyle}>
+          <li>{t("guidelines.supportTools")}</li>
+          <li>{t("guidelines.supportContact")}</li>
+        </ul>
+
+        <p style={guidelinesSectionHeadingStyle}>{t("guidelines.contactTitle")}</p>
+        <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
+          {ORGANIZER_CONTACTS.map((c) => (
+            <li key={c.email}>
+              <a href={`mailto:${c.email}`} style={{ color: colors.sage }}>{c.name}</a>
+            </li>
+          ))}
+        </ul>
+      </details>
+
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: "1rem" }}>
+          <label htmlFor="reg-name" style={labelStyle}>
+            {t("registration.nameLabel")} *
+          </label>
+          <input id="reg-name" type="text" required value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
+        </div>
+
+        <div style={{ marginBottom: "1rem" }}>
+          <label htmlFor="reg-email" style={labelStyle}>
+            {t("registration.emailLabel")} *
+          </label>
+          <input id="reg-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} />
+        </div>
+
+        <div style={{ marginBottom: "1rem" }}>
+          <label htmlFor="reg-street" style={labelStyle}>
+            {t("registration.streetLabel")}
+          </label>
+          <input id="reg-street" type="text" value={ELIGIBLE_STREET} disabled style={{ ...inputStyle, background: colors.parchmentDark, color: colors.warmBrown }} />
+        </div>
+
+        <div style={{ marginBottom: "1rem" }}>
+          <label htmlFor="reg-house" style={labelStyle}>
+            {t("registration.houseNumberLabel")} *
+          </label>
+          <input id="reg-house" type="number" required min={HOUSE_NUMBER_MIN} max={HOUSE_NUMBER_MAX} value={houseNumber} onChange={(e) => setHouseNumber(e.target.value)} style={inputStyle} />
+        </div>
+
+        {needsUnitFields && (
+          <>
+            <div style={{ marginBottom: "1rem" }}>
+              <label htmlFor="reg-floor" style={labelStyle}>{t("registration.floorLabel")} *</label>
+              <input id="reg-floor" type="text" required value={floor} onChange={(e) => setFloor(e.target.value)} style={inputStyle} />
+            </div>
+            <div style={{ marginBottom: "1rem" }}>
+              <label htmlFor="reg-door" style={labelStyle}>{t("registration.doorLabel")}</label>
+              <input id="reg-door" type="text" value={door} onChange={(e) => setDoor(e.target.value)} style={inputStyle} />
+            </div>
+          </>
+        )}
+
+        <fieldset
+          style={{
+            border: `1px solid ${colors.borderTan}`,
+            borderRadius: 8,
+            padding: "1rem",
+            marginBottom: "1.25rem",
+          }}
+        >
+          <legend style={{ fontWeight: 600, fontSize: "0.95rem", padding: "0 0.25rem", color: colors.warmBrown }}>
+            {t("consent.title")}
+          </legend>
+
+          <ul style={{ margin: "0.5rem 0", paddingLeft: "1.25rem", fontSize: "0.9rem", lineHeight: 1.6 }}>
+            <li>{t("consent.dataCollected")}</li>
+            <li>{t("consent.purpose")}</li>
+            <li>{t("consent.retention")}</li>
+            <li>
+              {t("consent.contact")}{" "}
+              {ORGANIZER_CONTACTS.map((c, i) => (
+                <span key={c.email}>
+                  {i > 0 && ", "}
+                  <a href={`mailto:${c.email}`} style={{ color: colors.sage }}>{c.name}</a>
+                </span>
+              ))}
+            </li>
+          </ul>
+
+          <label style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginTop: "0.75rem", fontSize: "0.9rem", cursor: "pointer" }}>
+            <input type="checkbox" checked={consentChecked} onChange={(e) => setConsentChecked(e.target.checked)} style={{ marginTop: "0.2rem" }} />
+            <span>{t("consent.acknowledgment")}</span>
+          </label>
+        </fieldset>
+
+        {errors.length > 0 && (
+          <div role="alert" style={{ ...alertError, marginBottom: "1rem" }}>
+            {errors.map((err) => (
+              <p key={err} style={{ margin: "0.25rem 0" }}>{err}</p>
+            ))}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={submitting}
+          style={{
+            width: "100%",
+            padding: "0.75rem",
+            background: submitting ? colors.borderTan : colors.sage,
+            color: colors.white,
+            border: "none",
+            borderRadius: 6,
+            cursor: submitting ? "default" : "pointer",
+            fontFamily: fonts.body,
+            fontSize: "1rem",
+            fontWeight: 600,
+            boxShadow: shadows.soft,
+          }}
+        >
+          {submitting ? t("common.loading") : t("common.submit")}
+        </button>
+      </form>
+    </section>
+  );
+}
+
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: "0.9rem",
+  fontWeight: 500,
+  marginBottom: "0.25rem",
+  color: colors.warmBrown,
+  fontFamily: fonts.body,
+};
+
+const infoCardStyle: React.CSSProperties = {
+  background: colors.parchment,
+  border: `1px solid ${colors.borderTan}`,
+  borderRadius: 8,
+  padding: "1rem",
+  marginBottom: "1.25rem",
+  fontSize: "0.9rem",
+  lineHeight: 1.5,
+};
+
+const guidelinesSectionHeadingStyle: React.CSSProperties = {
+  fontWeight: 600,
+  margin: "0.75rem 0 0.25rem",
+  color: colors.warmBrown,
+};
+
+const guidelinesListStyle: React.CSSProperties = {
+  margin: "0 0 0.5rem",
+  paddingLeft: "1.25rem",
+};
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "0.5rem 0.75rem",
+  border: `1px solid ${colors.borderTan}`,
+  borderRadius: 6,
+  fontFamily: fonts.body,
+  fontSize: "0.95rem",
+  boxSizing: "border-box",
+  color: colors.inkBrown,
+  background: colors.white,
+};

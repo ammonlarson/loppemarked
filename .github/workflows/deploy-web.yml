@@ -1,0 +1,103 @@
+name: Deploy Web
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/web/**"
+      - "packages/shared/**"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: "eu-north-1"
+
+jobs:
+  deploy-web-staging:
+    name: Deploy Web (staging)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: staging
+    concurrency:
+      group: deploy-web-staging
+      cancel-in-progress: false
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.DEPLOY_ROLE_ARN_STAGING }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Start Amplify build
+        id: start-build
+        run: |
+          JOB=$(aws amplify start-job \
+            --app-id "${{ vars.AMPLIFY_APP_ID }}" \
+            --branch-name main \
+            --job-type RELEASE \
+            --query 'jobSummary.jobId' --output text)
+          echo "job_id=$JOB" >> "$GITHUB_OUTPUT"
+          echo "Started Amplify job: $JOB"
+
+      - name: Wait for Amplify build
+        run: |
+          while true; do
+            STATUS=$(aws amplify get-job \
+              --app-id "${{ vars.AMPLIFY_APP_ID }}" \
+              --branch-name main \
+              --job-id "${{ steps.start-build.outputs.job_id }}" \
+              --query 'job.summary.status' --output text)
+            echo "Build status: $STATUS"
+            case "$STATUS" in
+              SUCCEED) echo "Build succeeded"; exit 0 ;;
+              FAILED|CANCELLING|CANCELLED) echo "::error::Build $STATUS"; exit 1 ;;
+              *) sleep 30 ;;
+            esac
+          done
+
+  deploy-web-prod:
+    name: Deploy Web (prod)
+    needs: deploy-web-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    concurrency:
+      group: deploy-web-prod
+      cancel-in-progress: false
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.DEPLOY_ROLE_ARN_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Start Amplify build
+        id: start-build
+        run: |
+          JOB=$(aws amplify start-job \
+            --app-id "${{ vars.AMPLIFY_APP_ID }}" \
+            --branch-name main \
+            --job-type RELEASE \
+            --query 'jobSummary.jobId' --output text)
+          echo "job_id=$JOB" >> "$GITHUB_OUTPUT"
+          echo "Started Amplify job: $JOB"
+
+      - name: Wait for Amplify build
+        run: |
+          while true; do
+            STATUS=$(aws amplify get-job \
+              --app-id "${{ vars.AMPLIFY_APP_ID }}" \
+              --branch-name main \
+              --job-id "${{ steps.start-build.outputs.job_id }}" \
+              --query 'job.summary.status' --output text)
+            echo "Build status: $STATUS"
+            case "$STATUS" in
+              SUCCEED) echo "Build succeeded"; exit 0 ;;
+              FAILED|CANCELLING|CANCELLED) echo "::error::Build $STATUS"; exit 1 ;;
+              *) sleep 30 ;;
+            esac
+          done

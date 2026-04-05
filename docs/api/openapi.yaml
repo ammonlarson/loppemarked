@@ -1,0 +1,133 @@
+openapi: 3.1.0
+info:
+  title: UN17 Village Rooftop Gardens API
+  version: 0.1.0
+  description: >
+    Contract-first API skeleton for UN17 Village Rooftop Gardens registration and admin operations.
+servers:
+  - url: https://greenspace.un17hub.com
+tags:
+  - name: Public
+  - name: Admin
+paths:
+  /public/status:
+    get:
+      tags: [Public]
+      summary: Get public registration opening status.
+      responses:
+        '200':
+          description: OK
+  /public/greenhouses:
+    get:
+      tags: [Public]
+      summary: Get greenhouse summary availability.
+      responses:
+        '200':
+          description: OK
+  /public/boxes:
+    get:
+      tags: [Public]
+      summary: Get public-safe box states.
+      responses:
+        '200':
+          description: OK
+  /public/register:
+    post:
+      tags: [Public]
+      summary: Register apartment for a planter box.
+      responses:
+        '200':
+          description: Registration accepted.
+        '409':
+          description: Apartment already has registration (switch confirmation needed).
+  /public/waitlist:
+    post:
+      tags: [Public]
+      summary: Join waitlist when no public boxes are available.
+      responses:
+        '200':
+          description: Added or already tracked on waitlist.
+  /admin/auth/login:
+    post:
+      tags: [Admin]
+      summary: Admin login with email and password.
+      responses:
+        '200':
+          description: Authenticated.
+        '401':
+          description: Invalid credentials.
+  /admin/auth/change-password:
+    post:
+      tags: [Admin]
+      summary: Change current admin password.
+      responses:
+        '200':
+          description: Updated.
+  /admin/registrations:
+    get:
+      tags: [Admin]
+      summary: List registrations with personal data.
+      responses:
+        '200':
+          description: OK
+    post:
+      tags: [Admin]
+      summary: Create admin override reservation.
+      responses:
+        '200':
+          description: Created.
+  /admin/registrations/move:
+    post:
+      tags: [Admin]
+      summary: Move registration from one box to another.
+      responses:
+        '200':
+          description: Updated.
+  /admin/registrations/remove:
+    post:
+      tags: [Admin]
+      summary: Remove registration and choose box availability outcome.
+      responses:
+        '200':
+          description: Removed.
+  /admin/waitlist/assign:
+    post:
+      tags: [Admin]
+      summary: Assign waitlisted apartment to a box.
+      responses:
+        '200':
+          description: Assigned.
+  /admin/settings/opening-time:
+    patch:
+      tags: [Admin]
+      summary: Update registration opening datetime.
+      responses:
+        '200':
+          description: Updated.
+  /admin/admins:
+    post:
+      tags: [Admin]
+      summary: Create admin account.
+      responses:
+        '201':
+          description: Created.
+  /admin/admins/{id}:
+    delete:
+      tags: [Admin]
+      summary: Delete admin account (except self).
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted.
+  /admin/audit:
+    get:
+      tags: [Admin]
+      summary: Retrieve audit timeline.
+      responses:
+        '200':
+          description: OK

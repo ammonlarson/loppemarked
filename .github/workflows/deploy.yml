@@ -1,0 +1,173 @@
+name: Deploy API
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/api/**"
+      - "packages/shared/**"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: "eu-north-1"
+
+jobs:
+  build:
+    name: Build API bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Bundle for Lambda
+        run: npm run bundle --workspace=@greenspace/api
+
+      - name: Create deployment zip
+        working-directory: apps/api/dist/lambda
+        run: zip -j /tmp/api-lambda.zip index.mjs rds-global-bundle.pem
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-lambda
+          path: /tmp/api-lambda.zip
+          retention-days: 7
+
+  deploy-staging:
+    name: Deploy (staging)
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency:
+      group: deploy-api-staging
+      cancel-in-progress: false
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-lambda
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.DEPLOY_ROLE_ARN_STAGING }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name "${{ vars.API_FUNCTION_NAME }}" \
+            --zip-file fileb://api-lambda.zip \
+            --publish
+
+      - name: Wait for function to be active
+        run: |
+          aws lambda wait function-active-v2 \
+            --function-name "${{ vars.API_FUNCTION_NAME }}"
+
+      - name: Run migrations
+        run: |
+          aws lambda invoke \
+            --function-name "${{ vars.API_FUNCTION_NAME }}" \
+            --payload '{"action":"migrate"}' \
+            --cli-binary-format raw-in-base64-out \
+            /tmp/migrate-response.json
+          cat /tmp/migrate-response.json
+          STATUS=$(jq -r '.statusCode' /tmp/migrate-response.json)
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Migration failed"
+            exit 1
+          fi
+
+      - name: Get Function URL
+        id: url
+        run: |
+          URL=$(aws lambda get-function-url-config \
+            --function-name "${{ vars.API_FUNCTION_NAME }}" \
+            --query 'FunctionUrl' --output text)
+          echo "api_url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Health check
+        run: |
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' "${{ steps.url.outputs.api_url }}health")
+          echo "Health check returned HTTP $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Health check failed with HTTP $STATUS"
+            exit 1
+          fi
+
+  deploy-prod:
+    name: Deploy (prod)
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-api-prod
+      cancel-in-progress: false
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-lambda
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.DEPLOY_ROLE_ARN_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name "${{ vars.API_FUNCTION_NAME }}" \
+            --zip-file fileb://api-lambda.zip \
+            --publish
+
+      - name: Wait for function to be active
+        run: |
+          aws lambda wait function-active-v2 \
+            --function-name "${{ vars.API_FUNCTION_NAME }}"
+
+      - name: Run migrations
+        run: |
+          aws lambda invoke \
+            --function-name "${{ vars.API_FUNCTION_NAME }}" \
+            --payload '{"action":"migrate"}' \
+            --cli-binary-format raw-in-base64-out \
+            /tmp/migrate-response.json
+          cat /tmp/migrate-response.json
+          STATUS=$(jq -r '.statusCode' /tmp/migrate-response.json)
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Migration failed"
+            exit 1
+          fi
+
+      - name: Get Function URL
+        id: url
+        run: |
+          URL=$(aws lambda get-function-url-config \
+            --function-name "${{ vars.API_FUNCTION_NAME }}" \
+            --query 'FunctionUrl' --output text)
+          echo "api_url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Health check
+        run: |
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' "${{ steps.url.outputs.api_url }}health")
+          echo "Health check returned HTTP $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Health check failed with HTTP $STATUS"
+            exit 1
+          fi

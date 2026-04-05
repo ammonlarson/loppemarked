@@ -1,0 +1,342 @@
+name: Terraform
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "infra/terraform/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "infra/terraform/**"
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
+env:
+  TF_VERSION: "1.7.5"
+  AWS_REGION: "eu-north-1"
+
+jobs:
+  # --------------- Pull Request: plan per environment ---------------
+
+  plan-staging:
+    name: "Plan (staging)"
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false) || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: terraform-staging
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.TF_ROLE_ARN_STAGING }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform init
+        working-directory: infra/terraform/environments/staging
+        run: terraform init -input=false
+
+      - name: Terraform validate
+        working-directory: infra/terraform/environments/staging
+        run: terraform validate
+
+      - name: Terraform plan
+        working-directory: infra/terraform/environments/staging
+        run: terraform plan -input=false -no-color -out=tfplan 2>&1 | tee plan-output.txt
+
+      - name: Upload plan artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-staging
+          path: |
+            infra/terraform/environments/staging/tfplan
+            infra/terraform/environments/staging/plan-output.txt
+          retention-days: 7
+
+  plan-prod:
+    name: "Plan (prod)"
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false) || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: terraform-prod
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.TF_ROLE_ARN_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform init
+        working-directory: infra/terraform/environments/prod
+        run: terraform init -input=false
+
+      - name: Terraform validate
+        working-directory: infra/terraform/environments/prod
+        run: terraform validate
+
+      - name: Terraform plan
+        working-directory: infra/terraform/environments/prod
+        run: terraform plan -input=false -no-color -out=tfplan 2>&1 | tee plan-output.txt
+
+      - name: Upload plan artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-prod
+          path: |
+            infra/terraform/environments/prod/tfplan
+            infra/terraform/environments/prod/plan-output.txt
+          retention-days: 7
+
+  # --------------- Fork PRs: backend-disabled validate only ---------------
+
+  validate-fork:
+    name: "Validate (fork)"
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive infra/terraform
+
+      - name: Validate all environments (backend disabled)
+        run: |
+          for ENV_DIR in infra/terraform/environments/*; do
+            if [ ! -d "$ENV_DIR" ]; then
+              continue
+            fi
+            echo "--- Validating $ENV_DIR ---"
+            terraform -chdir="$ENV_DIR" init -backend=false
+            terraform -chdir="$ENV_DIR" validate
+          done
+
+  # --------------- Deploy pipeline: detect → apply staging → apply prod ---------------
+
+  detect-staging:
+    name: "Detect changes (staging)"
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: terraform-staging
+      cancel-in-progress: false
+    outputs:
+      has_changes: ${{ steps.plan.outputs.has_changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.TF_ROLE_ARN_STAGING }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform init
+        working-directory: infra/terraform/environments/staging
+        run: terraform init -input=false
+
+      - name: Terraform plan (detect changes)
+        id: plan
+        working-directory: infra/terraform/environments/staging
+        shell: bash
+        run: |
+          set +e
+          terraform plan -input=false -no-color -detailed-exitcode -out=tfplan 2>&1 | tee plan-output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          if [ "$EXIT_CODE" -eq 0 ]; then
+            echo "No changes detected"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          elif [ "$EXIT_CODE" -eq 2 ]; then
+            echo "Changes detected"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Terraform plan failed with exit code $EXIT_CODE"
+            exit 1
+          fi
+
+      - name: Upload plan artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-tfplan-staging
+          path: |
+            infra/terraform/environments/staging/tfplan
+            infra/terraform/environments/staging/plan-output.txt
+          retention-days: 7
+
+  detect-prod:
+    name: "Detect changes (prod)"
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: terraform-prod
+      cancel-in-progress: false
+    outputs:
+      has_changes: ${{ steps.plan.outputs.has_changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.TF_ROLE_ARN_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform init
+        working-directory: infra/terraform/environments/prod
+        run: terraform init -input=false
+
+      - name: Terraform plan (detect changes)
+        id: plan
+        working-directory: infra/terraform/environments/prod
+        shell: bash
+        run: |
+          set +e
+          terraform plan -input=false -no-color -detailed-exitcode -out=tfplan 2>&1 | tee plan-output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          if [ "$EXIT_CODE" -eq 0 ]; then
+            echo "No changes detected"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          elif [ "$EXIT_CODE" -eq 2 ]; then
+            echo "Changes detected"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Terraform plan failed with exit code $EXIT_CODE"
+            exit 1
+          fi
+
+      - name: Upload plan artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-tfplan-prod
+          path: |
+            infra/terraform/environments/prod/tfplan
+            infra/terraform/environments/prod/plan-output.txt
+          retention-days: 7
+
+  apply-staging:
+    name: "Apply (staging)"
+    needs: detect-staging
+    if: needs.detect-staging.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency:
+      group: terraform-staging
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.TF_ROLE_ARN_STAGING }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform init
+        working-directory: infra/terraform/environments/staging
+        run: terraform init -input=false
+
+      - name: Download plan from detect job
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-tfplan-staging
+          path: infra/terraform/environments/staging
+
+      - name: Terraform apply
+        working-directory: infra/terraform/environments/staging
+        run: terraform apply -input=false -no-color tfplan
+
+  apply-prod:
+    name: "Apply (prod)"
+    needs: [detect-staging, detect-prod, apply-staging]
+    if: >-
+      always() &&
+      needs.detect-prod.outputs.has_changes == 'true' &&
+      needs.detect-prod.result == 'success' &&
+      needs.detect-staging.result == 'success' &&
+      (needs.apply-staging.result == 'success' || needs.apply-staging.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: terraform-prod
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.TF_ROLE_ARN_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform init
+        working-directory: infra/terraform/environments/prod
+        run: terraform init -input=false
+
+      - name: Download plan from detect job
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-tfplan-prod
+          path: infra/terraform/environments/prod
+
+      - name: Terraform apply
+        working-directory: infra/terraform/environments/prod
+        run: terraform apply -input=false -no-color tfplan

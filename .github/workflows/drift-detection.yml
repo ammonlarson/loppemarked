@@ -1,0 +1,114 @@
+name: Drift Detection
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  issues: write
+
+env:
+  TF_VERSION: "1.7.5"
+  AWS_REGION: "eu-north-1"
+
+jobs:
+  detect-drift:
+    name: "Detect drift (${{ matrix.environment }})"
+    runs-on: ubuntu-latest
+    concurrency:
+      group: terraform-${{ matrix.environment }}
+      cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - environment: staging
+            role_var: TF_ROLE_ARN_STAGING
+          - environment: prod
+            role_var: TF_ROLE_ARN_PROD
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars[matrix.role_var] }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform init
+        working-directory: infra/terraform/environments/${{ matrix.environment }}
+        run: terraform init -input=false
+
+      - name: Terraform plan (drift check)
+        id: plan
+        working-directory: infra/terraform/environments/${{ matrix.environment }}
+        shell: bash
+        run: |
+          set +e
+          terraform plan -input=false -no-color -detailed-exitcode -out=tfplan 2>&1 | tee plan-output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          if [ "$EXIT_CODE" -eq 0 ]; then
+            echo "No drift detected"
+            echo "has_drift=false" >> "$GITHUB_OUTPUT"
+          elif [ "$EXIT_CODE" -eq 2 ]; then
+            echo "Drift detected"
+            echo "has_drift=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Terraform plan failed with exit code $EXIT_CODE"
+            exit 1
+          fi
+
+      - name: Upload plan artifact
+        if: steps.plan.outputs.has_drift == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-plan-${{ matrix.environment }}
+          path: infra/terraform/environments/${{ matrix.environment }}/plan-output.txt
+          retention-days: 7
+
+      - name: Create drift issue
+        if: steps.plan.outputs.has_drift == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const planOutput = fs.readFileSync(
+              'infra/terraform/environments/${{ matrix.environment }}/plan-output.txt',
+              'utf8'
+            );
+            const truncated = planOutput.length > 60000
+              ? planOutput.slice(0, 60000) + '\n\n... (truncated)'
+              : planOutput;
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `IaC drift detected in ${{ matrix.environment }}`,
+              labels: ['ops', 'drift'],
+              body: [
+                `## Infrastructure drift detected`,
+                '',
+                `**Environment:** ${{ matrix.environment }}`,
+                `**Detected at:** ${new Date().toISOString()}`,
+                `**Workflow run:** [View run](${runUrl})`,
+                '',
+                '### Terraform plan output',
+                '',
+                '```',
+                truncated,
+                '```',
+                '',
+                'Review the plan output and either apply the expected changes or investigate the drift.',
+              ].join('\n'),
+            });

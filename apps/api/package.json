@@ -1,0 +1,32 @@
+{
+  "name": "@greenspace/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "bundle": "esbuild src/lambda.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/lambda/index.mjs --external:pg-native --external:@aws-sdk/* --banner:js=\"import{createRequire}from'module';const require=createRequire(import.meta.url);\" && cp src/certs/rds-global-bundle.pem dist/lambda/rds-global-bundle.pem",
+    "db:setup": "tsx src/db/setup.ts",
+    "dev": "tsx watch src/dev-server.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.1000.0",
+    "@aws-sdk/client-ses": "^3.1000.0",
+    "@greenspace/shared": "*",
+    "kysely": "^0.28.11",
+    "pg": "^8.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.16.0",
+    "esbuild": "^0.27.3",
+    "eslint": "^9.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.0.0"
+  }
+}
