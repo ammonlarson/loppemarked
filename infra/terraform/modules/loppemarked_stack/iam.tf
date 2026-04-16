@@ -69,7 +69,7 @@ data "aws_iam_policy_document" "api_ses" {
     ]
     resources = [
       aws_ses_domain_identity.main.arn,
-      "arn:aws:ses:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:identity/*",
+      "arn:aws:ses:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:identity/*",
     ]
   }
 }

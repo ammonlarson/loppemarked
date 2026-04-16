@@ -1,9 +1,8 @@
 # ---------- Amplify App ----------
 
 resource "aws_amplify_app" "web" {
-  name       = "${local.naming_prefix}-web"
-  repository = "https://github.com/${var.github_repo}"
-  platform   = "WEB_COMPUTE"
+  name     = "${local.naming_prefix}-web"
+  platform = "WEB_COMPUTE"
 
   build_spec = <<-YAML
 version: 1
