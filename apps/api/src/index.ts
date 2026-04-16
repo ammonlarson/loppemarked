@@ -1,4 +1,4 @@
-import { GREENHOUSES } from "@greenspace/shared";
+import { GREENHOUSES } from "@loppemarked/shared";
 import { createDatabase } from "./db/connection.js";
 import { migrateToLatestInline } from "./db/migration-registry.js";
 import { seed } from "./db/seed.js";
@@ -165,8 +165,8 @@ async function ensureDb(): Promise<ReturnType<typeof createDatabase>> {
     db = createDatabase({
       host: process.env["DB_HOST"] ?? "localhost",
       port: Number(process.env["DB_PORT"] ?? "5432"),
-      database: process.env["DB_NAME"] ?? "greenspace",
-      user: process.env["DB_USER"] ?? "greenspace",
+      database: process.env["DB_NAME"] ?? "loppemarked",
+      user: process.env["DB_USER"] ?? "loppemarked",
       password,
       ssl: process.env["DB_SSL"] === "true",
     });

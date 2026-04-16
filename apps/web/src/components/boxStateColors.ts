@@ -1,4 +1,4 @@
-import type { BoxState } from "@greenspace/shared";
+import type { BoxState } from "@loppemarked/shared";
 
 export const BOX_STATE_COLORS: Record<BoxState, { background: string; text: string; border: string }> = {
   available: { background: "#EAF0E5", text: "#5C6B52", border: "#7A8B6F" },

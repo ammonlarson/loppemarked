@@ -6,7 +6,7 @@ import {
   parseDawaHouseNumber,
   isFloorDoorRequired,
   type DawaAutocompleteSuggestion,
-} from "@greenspace/shared";
+} from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { colors, fonts, shadows } from "@/styles/theme";
 

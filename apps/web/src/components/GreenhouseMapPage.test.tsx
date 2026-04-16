@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
 import { render, screen, act, cleanup, fireEvent } from "@testing-library/react";
-import type { PlanterBoxPublic, GreenhouseSummary } from "@greenspace/shared";
+import type { PlanterBoxPublic, GreenhouseSummary } from "@loppemarked/shared";
 
 vi.mock("@/i18n/LanguageProvider", () => ({
   useLanguage: () => ({ language: "en", ready: true, setLanguage: vi.fn(), t: (key: string) => key }),

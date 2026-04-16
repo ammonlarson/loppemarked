@@ -1,5 +1,5 @@
-import { KRONEN_BOX_RANGE, SOEN_BOX_RANGE } from "@greenspace/shared";
-import type { Language } from "@greenspace/shared";
+import { KRONEN_BOX_RANGE, SOEN_BOX_RANGE } from "@loppemarked/shared";
+import type { Language } from "@loppemarked/shared";
 import { logAuditEvent } from "../../lib/audit.js";
 import { buildBulkEmailTemplate, wrapEmailHtml } from "../../lib/admin-email-templates.js";
 import { queueAndSendEmail } from "../../lib/email-service.js";

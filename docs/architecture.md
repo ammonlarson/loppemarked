@@ -88,7 +88,7 @@ Language detection follows this priority:
 1. Browser locale (`navigator.language`)
 2. Manual user selection via `LanguageSelector`
 
-The `LanguageProvider` React context makes the current language and `t()` translation function available to all components. Translation strings are defined in `translations.ts` with key contracts in `@greenspace/shared`.
+The `LanguageProvider` React context makes the current language and `t()` translation function available to all components. Translation strings are defined in `translations.ts` with key contracts in `@loppemarked/shared`.
 
 ## Backend Architecture
 
@@ -259,7 +259,7 @@ All AWS infrastructure is managed via Terraform with isolated staging and produc
 ```mermaid
 graph TB
     subgraph "GitHub"
-        REPO[Repository<br/>ammonlarson/greenspace]
+        REPO[Repository<br/>ammonlarson/loppemarked]
         CI[CI Workflow<br/>ci.yml]
         TF_WF[Terraform Workflow<br/>terraform.yml]
     end
@@ -355,7 +355,7 @@ infra/terraform/
 │   ├── staging/main.tf        Staging stack configuration
 │   └── prod/main.tf           Production stack + subdomain delegation
 └── modules/
-    └── greenspace_stack/      Shared module for all AWS resources
+    └── loppemarked_stack/      Shared module for all AWS resources
         ├── main.tf            Naming prefix, provider config
         ├── amplify.tf         Amplify app, branch, and domain association
         ├── api_runtime.tf     Lambda function, Function URL, EventBridge schedule
@@ -392,7 +392,7 @@ graph LR
 
 ## Shared Package
 
-The `@greenspace/shared` package contains code used by both frontend and backend:
+The `@loppemarked/shared` package contains code used by both frontend and backend:
 
 - **Domain constants** — Greenhouse names, 29-box catalog, opening datetime, email config.
 - **Types** — Interfaces for all entities (`PlanterBoxPublic`, `Registration`, etc.).

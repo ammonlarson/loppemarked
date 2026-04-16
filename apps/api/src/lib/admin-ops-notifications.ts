@@ -1,4 +1,4 @@
-import { BOX_CATALOG } from "@greenspace/shared";
+import { BOX_CATALOG } from "@loppemarked/shared";
 import type { Kysely, Transaction } from "kysely";
 import type { Database } from "../db/types.js";
 import { queueAndSendEmail } from "./email-service.js";

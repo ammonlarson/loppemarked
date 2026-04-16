@@ -3,7 +3,7 @@
 UN17 Village Rooftop Gardens is the UN17 rooftop greenhouse registration platform for the 2026 season.
 
 Primary product specification:
-- [UN17 Village Rooftop Gardens Spec](docs/specs/greenspace-2026-spec.md)
+- [UN17 Village Rooftop Gardens Spec](docs/specs/loppemarked-2026-spec.md)
 - [Architecture Overview](docs/architecture.md)
 
 ## Repository Layout
@@ -13,7 +13,7 @@ Primary product specification:
 - [`packages/shared`](packages/shared/) - Shared types, validation schemas, and i18n/domain constants.
 - [`infra/`](infra/) - AWS infrastructure as code.
   - [`infra/terraform`](infra/terraform/) - Terraform modules and environment stacks.
-  - [`infra/terraform/modules/greenspace_stack`](infra/terraform/modules/greenspace_stack/) - Shared AWS resource module.
+  - [`infra/terraform/modules/loppemarked_stack`](infra/terraform/modules/loppemarked_stack/) - Shared AWS resource module.
 - [`docs/`](docs/) - Product specs, architecture, ADRs, API contracts, and data model docs.
   - [`docs/architecture.md`](docs/architecture.md) - System architecture with diagrams.
   - [`docs/api/openapi.yaml`](docs/api/openapi.yaml) - OpenAPI 3.1 contract.
@@ -37,9 +37,9 @@ Primary product specification:
 **Docker:**
 
 ```bash
-docker run -d --name greenspace-db \
-  -e POSTGRES_DB=greenspace \
-  -e POSTGRES_USER=greenspace \
+docker run -d --name loppemarked-db \
+  -e POSTGRES_DB=loppemarked \
+  -e POSTGRES_USER=loppemarked \
   -e POSTGRES_PASSWORD=localdev \
   -p 5432:5432 \
   postgres:16
@@ -50,8 +50,8 @@ docker run -d --name greenspace-db \
 ```bash
 brew install postgresql@16
 brew services start postgresql@16
-createuser greenspace
-createdb -O greenspace greenspace
+createuser loppemarked
+createdb -O loppemarked loppemarked
 ```
 
 ### 2. Install dependencies
@@ -63,7 +63,7 @@ npm install
 ### 3. Run database migrations and seed data
 
 ```bash
-DB_PASSWORD=localdev npm run db:setup --workspace=@greenspace/api
+DB_PASSWORD=localdev npm run db:setup --workspace=@loppemarked/api
 ```
 
 This runs all Kysely migrations and seeds greenhouses, planter boxes, system settings, and an initial admin account. The default admin password is `changeme123` (override with `SEED_ADMIN_PASSWORD`).
@@ -71,7 +71,7 @@ This runs all Kysely migrations and seeds greenhouses, planter boxes, system set
 ### 4. Start the API dev server
 
 ```bash
-DB_PASSWORD=localdev npm run dev --workspace=@greenspace/api
+DB_PASSWORD=localdev npm run dev --workspace=@loppemarked/api
 ```
 
 The API starts on `http://localhost:3001` by default (override with `API_PORT`).
@@ -79,7 +79,7 @@ The API starts on `http://localhost:3001` by default (override with `API_PORT`).
 ### 5. Start the frontend
 
 ```bash
-npm run dev --workspace=@greenspace/web
+npm run dev --workspace=@loppemarked/web
 ```
 
 The Next.js dev server starts on `http://localhost:3000` and proxies API routes (`/public/*`, `/admin/*`, `/health`) to the API dev server.
@@ -90,8 +90,8 @@ The Next.js dev server starts on `http://localhost:3000` and proxies API routes 
 | --------------------- | ------------- | ------------------------------- |
 | `DB_HOST`             | `localhost`   | PostgreSQL host                 |
 | `DB_PORT`             | `5432`        | PostgreSQL port                 |
-| `DB_NAME`             | `greenspace`  | Database name                   |
-| `DB_USER`             | `greenspace`  | Database user                   |
+| `DB_NAME`             | `loppemarked`  | Database name                   |
+| `DB_USER`             | `loppemarked`  | Database user                   |
 | `DB_PASSWORD`         | (empty)       | Database password               |
 | `DB_SSL`              | `false`       | Enable SSL for DB connection    |
 | `API_PORT`            | `3001`        | Local dev server port           |
@@ -110,7 +110,7 @@ The Next.js dev server starts on `http://localhost:3000` and proxies API routes 
 
 The API runs as an AWS Lambda function with a public Function URL.
 
-- **Build**: `npm run bundle --workspace=@greenspace/api` produces a single-file ESM bundle via esbuild.
+- **Build**: `npm run bundle --workspace=@loppemarked/api` produces a single-file ESM bundle via esbuild.
 - **Deploy workflow** (`deploy.yml`): Triggers on push to `main` when `apps/api/**` or `packages/shared/**` change. Builds the bundle, deploys to staging Lambda, runs a health check, then promotes to production (gated by the `production` environment protection rule).
 - **Lambda Function URL**: Terraform provisions the Lambda function and Function URL. The `api_base_url` output contains the public endpoint for each environment.
 
@@ -122,7 +122,7 @@ Each GitHub environment (`staging`, `production`) needs these variables:
 | ------------------------- | ---------------------------------------- |
 | `DEPLOY_ROLE_ARN_STAGING` | OIDC role ARN for staging API deployment (repo-level) |
 | `DEPLOY_ROLE_ARN_PROD`    | OIDC role ARN for production API deployment (repo-level) |
-| `API_FUNCTION_NAME`       | Lambda function name (environment-level, e.g. `greenspace-staging-2026-api`) |
+| `API_FUNCTION_NAME`       | Lambda function name (environment-level, e.g. `loppemarked-staging-2026-api`) |
 
 ## CI / Terraform Pipeline
 

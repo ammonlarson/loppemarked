@@ -2,7 +2,7 @@ import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
 import { render, screen, act, cleanup } from "@testing-library/react";
 import { LanguageProvider, useLanguage } from "./LanguageProvider";
 
-const STORAGE_KEY = "greenspace-language";
+const STORAGE_KEY = "loppemarked-language";
 
 function ReadyIndicator() {
   const { ready } = useLanguage();

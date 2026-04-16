@@ -23,7 +23,7 @@ assignees: ""
 
 ## Spec References
 
-- `docs/specs/greenspace-2026-spec.md` section(s):
+- `docs/specs/loppemarked-2026-spec.md` section(s):
 
 ## Acceptance Criteria
 

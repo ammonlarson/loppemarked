@@ -10,7 +10,7 @@ import {
   validateWaitlistInput,
   type GreenhousePreference,
   type Language,
-} from "@greenspace/shared";
+} from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { colors, fonts, shadows, alertError } from "@/styles/theme";
 import { WaitlistBanner } from "./WaitlistBanner";

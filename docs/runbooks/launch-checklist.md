@@ -14,17 +14,17 @@ Complete all checks in the staging environment before proceeding to production.
 ### 1.1 Infrastructure
 
 - [x] Terraform apply is clean (no pending changes)
-  - Verified: [Terraform run #22752467724](https://github.com/ammonlarson/greenspace/actions/runs/22752467724) — staging detect found no changes (2026-03-06)
+  - Verified: [Terraform run #22752467724](https://github.com/ammonlarson/loppemarked/actions/runs/22752467724) — staging detect found no changes (2026-03-06)
 - [x] Drift detection workflow has run with no drift issues
-  - Verified: [Drift detection run #22752397791](https://github.com/ammonlarson/greenspace/actions/runs/22752397791) — no staging drift (2026-03-06)
+  - Verified: [Drift detection run #22752397791](https://github.com/ammonlarson/loppemarked/actions/runs/22752397791) — no staging drift (2026-03-06)
 - [x] Lambda function is deployed and healthy (`/health` returns 200)
-  - Verified: [Deploy run #22753594618](https://github.com/ammonlarson/greenspace/actions/runs/22753594618) — staging health check passed (2026-03-06)
+  - Verified: [Deploy run #22753594618](https://github.com/ammonlarson/loppemarked/actions/runs/22753594618) — staging health check passed (2026-03-06)
 - [x] RDS instance is running, migrations applied, seed data present
 - [x] VPC networking: Lambda can reach RDS via private subnet
   - Verified: Lambda successfully queries RDS (confirmed by successful `/health` and `/public/status` responses)
 - [x] NAT gateway operational (Lambda can reach SES and external services)
 - [x] CloudWatch log group is receiving Lambda logs
-  - Log group: `/greenspace-staging-2026/api`
+  - Log group: `/loppemarked-staging-2026/api`
 - [x] KMS key is active for log encryption
 
 ### 1.2 Database & Data
@@ -73,7 +73,7 @@ FROM system_settings;
 - [x] DKIM records active and passing
 - [x] Test registration triggers confirmation email
 - [x] Email appears in `emails` table with status `sent`
-- [x] Email sender shows `greenspace@staging.un17hub.com`
+- [x] Email sender shows `loppemarked@staging.un17hub.com`
 - [x] Reply-to is `elise7284@gmail.com`
 - [x] Email content is bilingual (matches selected language)
 
@@ -88,9 +88,9 @@ FROM system_settings;
 ### 1.6 Monitoring
 
 - [x] CloudWatch dashboard loads with all 8 metric widgets
-  - Dashboard: `greenspace-staging-2026-dashboard`
+  - Dashboard: `loppemarked-staging-2026-dashboard`
 - [x] SNS alarm topic has email subscription confirmed
-  - Topic: `greenspace-staging-2026-alarms`
+  - Topic: `loppemarked-staging-2026-alarms`
 - [x] Test alarm triggers notification email delivery
 - [x] Lambda error alarm is configured (>0 errors for 2×5 min)
 - [x] RDS alarms configured (CPU, memory, connections)
@@ -113,7 +113,7 @@ FROM system_settings;
 - [x] No open P1/P2 issues in the repository
 - [x] All CI checks pass on `main` branch
 - [x] Terraform plan for production shows no unexpected changes
-  - [Terraform run #22752467724](https://github.com/ammonlarson/greenspace/actions/runs/22752467724) — prod plan clean (2026-03-06). This is the same multi-environment workflow run that also verified staging (section 1.1).
+  - [Terraform run #22752467724](https://github.com/ammonlarson/loppemarked/actions/runs/22752467724) — prod plan clean (2026-03-06). This is the same multi-environment workflow run that also verified staging (section 1.1).
 
 ### 2.2 Infrastructure Deploy
 
@@ -124,22 +124,22 @@ Production infrastructure is deployed via the Terraform workflow on merge to `ma
 3. Approve the production Terraform apply
 4. Wait for apply to complete successfully
 
-**Completed:** [Terraform run #22752401895](https://github.com/ammonlarson/greenspace/actions/runs/22752401895) — all resources applied to prod including EventBridge session cleanup (2026-03-06)
+**Completed:** [Terraform run #22752401895](https://github.com/ammonlarson/loppemarked/actions/runs/22752401895) — all resources applied to prod including EventBridge session cleanup (2026-03-06)
 
 **Post-infra verification:**
 
 - [x] RDS instance is running with Multi-AZ enabled
   - Instance: `db-OXVJYU5AYYNQNQB7JQEQEZDDXE`
 - [x] Lambda function is provisioned in VPC private subnets
-  - Function: `greenspace-prod-2026-api`
+  - Function: `loppemarked-prod-2026-api`
 - [x] SES domain identity verified (`un17hub.com`)
 - [x] DKIM records active
   - 3 CNAME records in Route 53 zone `Z0699283E3XYGVO8MRFY`
 - [x] CloudWatch alarms and dashboard created
-  - Dashboard: `greenspace-prod-2026-dashboard`
+  - Dashboard: `loppemarked-prod-2026-dashboard`
   - Alarms: lambda-errors, lambda-throttles, rds-cpu, rds-freeable-memory, rds-connections, ses-bounces, ses-complaints
 - [x] SNS alarm subscription confirmed
-  - Topic: `greenspace-prod-2026-alarms`
+  - Topic: `loppemarked-prod-2026-alarms`
 
 ### 2.3 Application Deploy
 
@@ -150,7 +150,7 @@ Application code is deployed via the Deploy API workflow on merge to `main`.
 3. Approve the `Deploy (prod)` job when staging is green
 4. Monitor the production health check
 
-**Completed:** [Deploy run #22753594618](https://github.com/ammonlarson/greenspace/actions/runs/22753594618) — staging deployed (health check passed), prod deployed (health check passed) (2026-03-06)
+**Completed:** [Deploy run #22753594618](https://github.com/ammonlarson/loppemarked/actions/runs/22753594618) — staging deployed (health check passed), prod deployed (health check passed) (2026-03-06)
 
 ### 2.4 Database Setup
 
@@ -241,7 +241,7 @@ curl -s "${PROD_API_URL}/admin/registrations" \
 - [x] Send a test registration (use a designated test address)
 - [x] Confirm email appears in `emails` table with status `sent`
 - [x] Confirm email is received in the test inbox
-- [x] Sender shows `greenspace@un17hub.com`
+- [x] Sender shows `loppemarked@un17hub.com`
 - [x] Reply-to is `elise7284@gmail.com`
 - [x] Clean up test registration and reset box state
 
@@ -249,7 +249,7 @@ curl -s "${PROD_API_URL}/admin/registrations" \
 
 - [x] CloudWatch dashboard shows Lambda invocation metrics
 - [x] Log group contains entries from smoke test requests
-  - Log group: `/greenspace-prod-2026/api`
+  - Log group: `/loppemarked-prod-2026/api`
 - [x] No alarms in ALARM state
 
 ---
@@ -300,7 +300,7 @@ If critical issues are discovered after launch:
 1. **API rollback:** Redeploy the previous Lambda version
    ```bash
    aws lambda update-function-code \
-     --function-name greenspace-prod-2026-api \
+     --function-name loppemarked-prod-2026-api \
      --s3-bucket <previous-artifact-bucket> \
      --s3-key <previous-artifact-key> \
      --publish

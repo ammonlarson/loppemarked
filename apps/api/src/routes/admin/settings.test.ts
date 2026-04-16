@@ -3,7 +3,7 @@ import type { Kysely } from "kysely";
 import type { Database } from "../../db/types.js";
 import type { RequestContext } from "../../router.js";
 import { AppError } from "../../lib/errors.js";
-import { OPENING_TIMEZONE } from "@greenspace/shared";
+import { OPENING_TIMEZONE } from "@loppemarked/shared";
 import {
   handleGetOpeningTime,
   handleUpdateOpeningTime,

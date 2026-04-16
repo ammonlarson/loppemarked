@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { DEFAULT_OPENING_DATETIME, type Greenhouse, type GreenhouseSummary } from "@greenspace/shared";
+import { DEFAULT_OPENING_DATETIME, type Greenhouse, type GreenhouseSummary } from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useHistoryState } from "@/hooks/useHistoryState";
 import { LanguageSelector } from "@/components/LanguageSelector";

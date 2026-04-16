@@ -24,7 +24,7 @@ resource "aws_lambda_function" "api" {
       DB_SECRET_ARN  = aws_secretsmanager_secret.db_credentials.arn
       DB_SSL         = "true"
       ENVIRONMENT    = var.environment
-      EMAIL_FROM     = coalesce(var.ses_sender_email, "greenspace@${var.ses_sender_domain}")
+      EMAIL_FROM     = coalesce(var.ses_sender_email, "loppemarked@${var.ses_sender_domain}")
       EMAIL_REPLY_TO = var.ses_reply_to_email
     }
   }

@@ -1,5 +1,5 @@
-import { normalizeApartmentKey, ADMIN_DEFAULT_LANGUAGE } from "@greenspace/shared";
-import type { Language } from "@greenspace/shared";
+import { normalizeApartmentKey, ADMIN_DEFAULT_LANGUAGE } from "@loppemarked/shared";
+import type { Language } from "@loppemarked/shared";
 import type { Kysely, Transaction } from "kysely";
 import { logAuditEvent } from "../../lib/audit.js";
 import {

@@ -1,4 +1,4 @@
-import type { Language } from "@greenspace/shared";
+import type { Language } from "@loppemarked/shared";
 
 const da = {
   "common.appName": "UN17 Village Taghaver",

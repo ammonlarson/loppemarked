@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { BoxState } from "@greenspace/shared";
-import { BOX_CATALOG, formatAddress } from "@greenspace/shared";
+import type { BoxState } from "@loppemarked/shared";
+import { BOX_CATALOG, formatAddress } from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { formatDateTime } from "@/utils/formatDate";
 import { colors, fonts, shadows, alertWarning } from "@/styles/theme";

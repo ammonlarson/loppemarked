@@ -88,7 +88,7 @@ output "ses_configuration_set_name" {
 
 output "ses_sender_email" {
   description = "Default From address for outbound email."
-  value       = coalesce(var.ses_sender_email, "greenspace@${var.ses_sender_domain}")
+  value       = coalesce(var.ses_sender_email, "loppemarked@${var.ses_sender_domain}")
 }
 
 output "ses_reply_to_email" {
