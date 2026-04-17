@@ -52,7 +52,12 @@ applications:
   }
 
   lifecycle {
-    ignore_changes = [access_token, oauth_token]
+    ignore_changes = [
+      access_token,
+      oauth_token,
+      repository,
+      iam_service_role_arn,
+    ]
   }
 
   tags = {
@@ -83,6 +88,8 @@ resource "aws_amplify_branch" "main" {
 # ---------- Amplify Domain Association ----------
 
 resource "aws_amplify_domain_association" "main" {
+  count = var.amplify_enable_custom_domain ? 1 : 0
+
   app_id      = aws_amplify_app.web.id
   domain_name = var.ses_sender_domain
 
