@@ -29,6 +29,7 @@ export {
   TABLE_CATALOG,
   TABLE_MAP_VIEWBOX,
   getTableById,
+  formatTableLabel,
   DEFAULT_OPENING_DATETIME,
   OPENING_TIMEZONE,
   EMAIL_FROM,

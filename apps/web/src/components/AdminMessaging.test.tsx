@@ -38,8 +38,6 @@ describe("AdminMessaging", () => {
 
     expect(screen.getByText("admin.messaging.title")).toBeDefined();
     expect(screen.getByText("admin.messaging.audienceAll")).toBeDefined();
-    expect(screen.getByText("admin.messaging.audienceKronen")).toBeDefined();
-    expect(screen.getByText("admin.messaging.audienceSøen")).toBeDefined();
   });
 
   it("fetches recipient count on mount", async () => {
@@ -88,7 +86,7 @@ describe("AdminMessaging", () => {
     expect(textarea.value).toBe("<p>Hello template</p>");
   });
 
-  it("re-fetches recipients when audience changes", async () => {
+  it("fetches the all-recipients audience on mount", async () => {
     const fetchMock = mockFetch({
       "/admin/messaging/recipients": { count: 3, recipients: [] },
     });
@@ -98,14 +96,11 @@ describe("AdminMessaging", () => {
       render(<AdminMessaging />);
     });
 
-    await act(async () => {
-      fireEvent.click(screen.getByText("admin.messaging.audienceKronen"));
-    });
-
     const calls = fetchMock.mock.calls.filter(
       (c: unknown[]) => (c[0] as string) === "/admin/messaging/recipients",
     );
-    expect(calls.length).toBeGreaterThanOrEqual(2);
+    expect(calls.length).toBeGreaterThanOrEqual(1);
+    expect(JSON.parse((calls[0][1] as { body: string }).body).audience).toBe("all");
   });
 
   it("shows error when subject is empty on send", async () => {

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { colors, fonts } from "@/styles/theme";
 
-type Audience = "all" | "kronen" | "søen";
+type Audience = "all";
 type Tab = "preview" | "source";
 
 interface RecipientInfo {
@@ -14,8 +14,6 @@ interface RecipientInfo {
 
 const AUDIENCE_OPTIONS: { value: Audience; labelKey: string }[] = [
   { value: "all", labelKey: "admin.messaging.audienceAll" },
-  { value: "kronen", labelKey: "admin.messaging.audienceKronen" },
-  { value: "søen", labelKey: "admin.messaging.audienceSøen" },
 ];
 
 function makeTabStyle(tab: Tab, activeTab: Tab): React.CSSProperties {

@@ -80,7 +80,7 @@ describe("AdminRegistrations", () => {
   });
 
   describe("list view", () => {
-    it("renders registration table after fetch defaulting to active filter", async () => {
+    it("renders bookings table after fetch defaulting to active filter", async () => {
       vi.stubGlobal("fetch", mockFetch([{ ok: true, body: registrations }]));
 
       await act(async () => {
@@ -88,7 +88,7 @@ describe("AdminRegistrations", () => {
       });
 
       expect(screen.getByText("Alice")).toBeDefined();
-      expect(screen.getByText("Linaria")).toBeDefined();
+      expect(screen.getByText("#1")).toBeDefined();
       expect(screen.queryByText("Bob")).toBeNull();
     });
 
@@ -116,15 +116,17 @@ describe("AdminRegistrations", () => {
       expect(screen.getByText("admin.registrations.noRegistrations")).toBeDefined();
     });
 
-    it("shows greenhouse column with correct values from BOX_CATALOG", async () => {
+    it("shows table size and price columns for each booking", async () => {
       vi.stubGlobal("fetch", mockFetch([{ ok: true, body: registrations }]));
 
       await act(async () => {
         render(<AdminRegistrations />);
       });
 
-      expect(screen.getByText("admin.registrations.greenhouse")).toBeDefined();
-      expect(screen.getByText("Kronen")).toBeDefined();
+      expect(screen.getByText("admin.registrations.tableSize")).toBeDefined();
+      expect(screen.getByText("admin.registrations.tablePrice")).toBeDefined();
+      expect(screen.getByText("2 m")).toBeDefined();
+      expect(screen.getByText("50 DKK")).toBeDefined();
     });
 
     it("shows move and remove buttons for active registrations only", async () => {
@@ -197,7 +199,7 @@ describe("AdminRegistrations", () => {
 
       expect(screen.getByLabelText("admin.registrations.addName *")).toBeDefined();
       expect(screen.getByLabelText("admin.registrations.addEmail *")).toBeDefined();
-      expect(screen.getByLabelText("admin.registrations.addBoxId *")).toBeDefined();
+      expect(screen.getByLabelText("admin.registrations.addTableId *")).toBeDefined();
 
       fireEvent.change(screen.getByLabelText("admin.registrations.addName *"), { target: { value: "Carol" } });
       fireEvent.change(screen.getByLabelText("admin.registrations.addEmail *"), { target: { value: "carol@test.com" } });
@@ -206,7 +208,7 @@ describe("AdminRegistrations", () => {
       expect(screen.getByLabelText("admin.registrations.addFloor *")).toBeDefined();
       fireEvent.change(screen.getByLabelText("admin.registrations.addFloor *"), { target: { value: "2" } });
 
-      fireEvent.change(screen.getByLabelText("admin.registrations.addBoxId *"), { target: { value: "10" } });
+      fireEvent.change(screen.getByLabelText("admin.registrations.addTableId *"), { target: { value: "10" } });
 
       await act(async () => {
         fireEvent.click(screen.getByText("common.confirm"));
@@ -244,7 +246,7 @@ describe("AdminRegistrations", () => {
       fireEvent.change(screen.getByLabelText("admin.registrations.addName *"), { target: { value: "Carol" } });
       fireEvent.change(screen.getByLabelText("admin.registrations.addEmail *"), { target: { value: "carol@test.com" } });
       fireEvent.change(screen.getByLabelText("admin.registrations.addHouseNumber *"), { target: { value: "130" } });
-      fireEvent.change(screen.getByLabelText("admin.registrations.addBoxId *"), { target: { value: "10" } });
+      fireEvent.change(screen.getByLabelText("admin.registrations.addTableId *"), { target: { value: "10" } });
 
       expect(screen.queryByLabelText("admin.registrations.addFloor *")).toBeNull();
 
@@ -305,7 +307,7 @@ describe("AdminRegistrations", () => {
       fireEvent.change(screen.getByLabelText("admin.registrations.addName *"), { target: { value: "Carol" } });
       fireEvent.change(screen.getByLabelText("admin.registrations.addEmail *"), { target: { value: "carol@test.com" } });
       fireEvent.change(screen.getByLabelText("admin.registrations.addHouseNumber *"), { target: { value: "170" } });
-      fireEvent.change(screen.getByLabelText("admin.registrations.addBoxId *"), { target: { value: "10" } });
+      fireEvent.change(screen.getByLabelText("admin.registrations.addTableId *"), { target: { value: "10" } });
 
       await act(async () => {
         fireEvent.click(screen.getByText("common.confirm"));
@@ -318,7 +320,7 @@ describe("AdminRegistrations", () => {
     it("shows error on add failure", async () => {
       const fetchMock = mockFetch([
         { ok: true, body: registrations },
-        { ok: false, body: { error: "Box is already occupied" } },
+        { ok: false, body: { error: "Table is already occupied" } },
       ]);
       vi.stubGlobal("fetch", fetchMock);
 
@@ -334,13 +336,13 @@ describe("AdminRegistrations", () => {
       fireEvent.change(screen.getByLabelText("admin.registrations.addEmail *"), { target: { value: "carol@test.com" } });
       fireEvent.change(screen.getByLabelText("admin.registrations.addHouseNumber *"), { target: { value: "170" } });
       fireEvent.change(screen.getByLabelText("admin.registrations.addFloor *"), { target: { value: "2" } });
-      fireEvent.change(screen.getByLabelText("admin.registrations.addBoxId *"), { target: { value: "10" } });
+      fireEvent.change(screen.getByLabelText("admin.registrations.addTableId *"), { target: { value: "10" } });
 
       await act(async () => {
         fireEvent.click(screen.getByText("common.confirm"));
       });
 
-      expect(screen.getByRole("alert").textContent).toBe("Box is already occupied");
+      expect(screen.getByRole("alert").textContent).toBe("Table is already occupied");
     });
 
     it("resets floor/door when house number changes", async () => {
@@ -379,7 +381,7 @@ describe("AdminRegistrations", () => {
       fireEvent.change(screen.getByLabelText("admin.registrations.addName *"), { target: { value: "Carol" } });
       fireEvent.change(screen.getByLabelText("admin.registrations.addEmail *"), { target: { value: "notanemail" } });
       fireEvent.change(screen.getByLabelText("admin.registrations.addHouseNumber *"), { target: { value: "130" } });
-      fireEvent.change(screen.getByLabelText("admin.registrations.addBoxId *"), { target: { value: "10" } });
+      fireEvent.change(screen.getByLabelText("admin.registrations.addTableId *"), { target: { value: "10" } });
 
       await act(async () => {
         fireEvent.click(screen.getByText("common.confirm"));
@@ -389,7 +391,7 @@ describe("AdminRegistrations", () => {
       expect(screen.getByText("validation.emailInvalid")).toBeDefined();
     });
 
-    it("renders box dropdown with standardized labels in add dialog", async () => {
+    it("renders table dropdown with numbered labels in add dialog", async () => {
       vi.stubGlobal("fetch", mockFetch([{ ok: true, body: registrations }]));
 
       await act(async () => {
@@ -400,20 +402,20 @@ describe("AdminRegistrations", () => {
         fireEvent.click(screen.getByText("admin.registrations.add"));
       });
 
-      const boxSelect = screen.getByLabelText("admin.registrations.addBoxId *") as HTMLSelectElement;
+      const boxSelect = screen.getByLabelText("admin.registrations.addTableId *") as HTMLSelectElement;
       expect(boxSelect.tagName).toBe("SELECT");
 
       const options = Array.from(boxSelect.options);
-      expect(options[0].textContent).toBe("admin.registrations.selectBox");
+      expect(options[0].textContent).toBe("admin.registrations.selectTable");
       expect(options[0].value).toBe("");
-      expect(options[1].textContent).toBe("Kronen - Alder");
-      expect(options[1].value).toBe("7");
-      expect(options[15].textContent).toBe("Søen - Barn swallow");
-      expect(options[15].value).toBe("26");
+      expect(options[1].textContent).toBe("Table #1 · 2 m · 50 DKK");
+      expect(options[1].value).toBe("1");
+      expect(options[23].textContent).toBe("Table #23 · 3 m · 75 DKK");
+      expect(options[23].value).toBe("23");
       expect(options).toHaveLength(30);
     });
 
-    it("disables occupied boxes and appends (occupied) suffix in add dialog", async () => {
+    it("disables occupied tables and appends (occupied) suffix in add dialog", async () => {
       const boxesData = [
         { id: 1, name: "Linaria", greenhouse: "Kronen", state: "occupied" },
         { id: 7, name: "Alder", greenhouse: "Kronen", state: "available" },
@@ -433,7 +435,7 @@ describe("AdminRegistrations", () => {
         fireEvent.click(screen.getByText("admin.registrations.add"));
       });
 
-      const boxSelect = screen.getByLabelText("admin.registrations.addBoxId *") as HTMLSelectElement;
+      const boxSelect = screen.getByLabelText("admin.registrations.addTableId *") as HTMLSelectElement;
       const options = Array.from(boxSelect.options);
 
       const linariaOption = options.find((o) => o.value === "1");
@@ -445,7 +447,7 @@ describe("AdminRegistrations", () => {
       expect(alderOption?.textContent).not.toContain("(occupied)");
     });
 
-    it("sorts available boxes before occupied boxes in add dialog", async () => {
+    it("sorts available tables before occupied tables in add dialog", async () => {
       const boxesData = Array.from({ length: 29 }, (_, i) => ({
         id: i + 1,
         name: `Box${i + 1}`,
@@ -466,7 +468,7 @@ describe("AdminRegistrations", () => {
         fireEvent.click(screen.getByText("admin.registrations.add"));
       });
 
-      const boxSelect = screen.getByLabelText("admin.registrations.addBoxId *") as HTMLSelectElement;
+      const boxSelect = screen.getByLabelText("admin.registrations.addTableId *") as HTMLSelectElement;
       const options = Array.from(boxSelect.options).slice(1);
       const lastOption = options[options.length - 1];
       expect(lastOption.value).toBe("1");
@@ -549,9 +551,9 @@ describe("AdminRegistrations", () => {
         fireEvent.click(screen.getByText("admin.registrations.move"));
       });
 
-      expect(screen.getByLabelText("admin.registrations.newBoxId")).toBeDefined();
+      expect(screen.getByLabelText("admin.registrations.newTableId")).toBeDefined();
 
-      fireEvent.change(screen.getByLabelText("admin.registrations.newBoxId"), { target: { value: "3" } });
+      fireEvent.change(screen.getByLabelText("admin.registrations.newTableId"), { target: { value: "3" } });
 
       await act(async () => {
         fireEvent.click(screen.getByText("common.confirm"));
@@ -566,7 +568,7 @@ describe("AdminRegistrations", () => {
       expect(screen.getByText("admin.registrations.moved")).toBeDefined();
     });
 
-    it("renders box dropdown with standardized labels in move dialog", async () => {
+    it("renders table dropdown with numbered labels in move dialog", async () => {
       vi.stubGlobal("fetch", mockFetch([{ ok: true, body: registrations }]));
 
       await act(async () => {
@@ -577,15 +579,15 @@ describe("AdminRegistrations", () => {
         fireEvent.click(screen.getByText("admin.registrations.move"));
       });
 
-      const boxSelect = screen.getByLabelText("admin.registrations.newBoxId") as HTMLSelectElement;
+      const boxSelect = screen.getByLabelText("admin.registrations.newTableId") as HTMLSelectElement;
       expect(boxSelect.tagName).toBe("SELECT");
 
       const options = Array.from(boxSelect.options);
-      expect(options[0].textContent).toBe("admin.registrations.selectBox");
-      expect(options[15].textContent).toBe("Søen - Barn swallow");
+      expect(options[0].textContent).toBe("admin.registrations.selectTable");
+      expect(options[23].textContent).toBe("Table #23 · 3 m · 75 DKK");
     });
 
-    it("does not disable the current box in move dialog", async () => {
+    it("does not disable the current table in move dialog", async () => {
       const boxesData = [
         { id: 1, name: "Linaria", greenhouse: "Kronen", state: "occupied" },
         { id: 3, name: "Foxglove", greenhouse: "Kronen", state: "occupied" },
@@ -605,7 +607,7 @@ describe("AdminRegistrations", () => {
         fireEvent.click(screen.getByText("admin.registrations.move"));
       });
 
-      const boxSelect = screen.getByLabelText("admin.registrations.newBoxId") as HTMLSelectElement;
+      const boxSelect = screen.getByLabelText("admin.registrations.newTableId") as HTMLSelectElement;
       const options = Array.from(boxSelect.options);
 
       const currentBoxOption = options.find((o) => o.value === "1");
@@ -617,7 +619,7 @@ describe("AdminRegistrations", () => {
       expect(otherOccupiedOption?.textContent).toContain("(occupied)");
     });
 
-    it("shows error when move submitted without selecting a box", async () => {
+    it("shows error when move submitted without selecting a table", async () => {
       vi.stubGlobal("fetch", mockFetch([{ ok: true, body: registrations }]));
 
       await act(async () => {
@@ -638,7 +640,7 @@ describe("AdminRegistrations", () => {
     it("shows error on move failure", async () => {
       const fetchMock = mockFetch([
         { ok: true, body: registrations },
-        { ok: false, body: { error: "Target box is already occupied" } },
+        { ok: false, body: { error: "Target table is already occupied" } },
       ]);
       vi.stubGlobal("fetch", fetchMock);
 
@@ -650,13 +652,13 @@ describe("AdminRegistrations", () => {
         fireEvent.click(screen.getByText("admin.registrations.move"));
       });
 
-      fireEvent.change(screen.getByLabelText("admin.registrations.newBoxId"), { target: { value: "3" } });
+      fireEvent.change(screen.getByLabelText("admin.registrations.newTableId"), { target: { value: "3" } });
 
       await act(async () => {
         fireEvent.click(screen.getByText("common.confirm"));
       });
 
-      expect(screen.getByRole("alert").textContent).toBe("Target box is already occupied");
+      expect(screen.getByRole("alert").textContent).toBe("Target table is already occupied");
     });
   });
 

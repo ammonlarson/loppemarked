@@ -28,10 +28,11 @@ describe("buildAdminNotification — add", () => {
     expect(result.bodyHtml).toContain("Anna Jensen");
   });
 
-  it("includes box details", () => {
+  it("includes table number, size, and price", () => {
     const result = buildAdminNotification(baseInput);
-    expect(result.bodyHtml).toContain("Stellaria");
-    expect(result.bodyHtml).toContain("Kronen");
+    expect(result.bodyHtml).toContain("#3");
+    expect(result.bodyHtml).toContain("2 m");
+    expect(result.bodyHtml).toContain("50 DKK");
   });
 
   it("sets correct recipient email", () => {
@@ -100,12 +101,10 @@ describe("buildAdminNotification — move", () => {
     expect(result.subject).toContain("UN17 Village Loppemarked");
   });
 
-  it("includes old and new box names", () => {
+  it("includes old and new table numbers", () => {
     const result = buildAdminNotification(moveInput);
-    expect(result.bodyHtml).toContain("Stellaria");
-    expect(result.bodyHtml).toContain("Kronen");
-    expect(result.bodyHtml).toContain("Great tit");
-    expect(result.bodyHtml).toContain("Søen");
+    expect(result.bodyHtml).toContain("#3");
+    expect(result.bodyHtml).toContain("#20");
   });
 
   it("includes move detail callout with blue styling", () => {
@@ -113,9 +112,10 @@ describe("buildAdminNotification — move", () => {
     expect(result.bodyHtml).toContain("#1976d2");
   });
 
-  it("includes new box details table", () => {
+  it("includes new table details table with number and price", () => {
     const result = buildAdminNotification(moveInput);
-    expect(result.bodyHtml).toContain("Great tit");
+    expect(result.bodyHtml).toContain("#20");
+    expect(result.bodyHtml).toContain("50 DKK");
   });
 
   it("includes contact info", () => {
@@ -145,10 +145,9 @@ describe("buildAdminNotification — remove", () => {
     expect(result.subject).toContain("UN17 Village Loppemarked");
   });
 
-  it("includes removed box info", () => {
+  it("includes removed table number", () => {
     const result = buildAdminNotification(removeInput);
-    expect(result.bodyHtml).toContain("Stellaria");
-    expect(result.bodyHtml).toContain("Kronen");
+    expect(result.bodyHtml).toContain("#3");
   });
 
   it("includes remove detail callout with red styling", () => {
@@ -173,11 +172,11 @@ describe("buildAdminNotification — remove", () => {
   });
 });
 
-describe("buildAdminNotification — unknown box", () => {
-  it("handles unknown box ID gracefully", () => {
+describe("buildAdminNotification — unknown table", () => {
+  it("handles unknown table ID gracefully", () => {
     const result = buildAdminNotification({ ...baseInput, boxId: 999 });
-    expect(result.bodyHtml).toContain("Box 999");
-    expect(result.bodyHtml).toContain("Unknown");
+    expect(result.bodyHtml).toContain("#999");
+    expect(result.bodyHtml).toContain("\u2014");
   });
 });
 

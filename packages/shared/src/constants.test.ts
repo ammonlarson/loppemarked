@@ -12,6 +12,7 @@ import {
   HOUSE_NUMBER_MAX,
   SEED_ADMIN_EMAILS,
   getTableById,
+  formatTableLabel,
 } from "./constants.js";
 
 describe("GREENHOUSES", () => {
@@ -129,5 +130,22 @@ describe("TABLE_CATALOG", () => {
     expect(getTableById(1)?.number).toBe(1);
     expect(getTableById(29)?.number).toBe(29);
     expect(getTableById(999)).toBeUndefined();
+  });
+});
+
+describe("formatTableLabel", () => {
+  it("renders a short label by default", () => {
+    expect(formatTableLabel(1)).toBe("Table #1");
+    expect(formatTableLabel(29)).toBe("Table #29");
+  });
+
+  it("renders size and price when details requested", () => {
+    expect(formatTableLabel(1, { includeDetails: true })).toBe("Table #1 · 2 m · 50 DKK");
+    expect(formatTableLabel(23, { includeDetails: true })).toBe("Table #23 · 3 m · 75 DKK");
+  });
+
+  it("falls back to the raw id for unknown tables", () => {
+    expect(formatTableLabel(999)).toBe("Table #999");
+    expect(formatTableLabel(999, { includeDetails: true })).toBe("Table #999");
   });
 });

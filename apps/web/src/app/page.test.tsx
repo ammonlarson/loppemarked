@@ -254,7 +254,7 @@ describe("translations", () => {
       "admin.registrations.title",
       "admin.registrations.name",
       "admin.registrations.email",
-      "admin.registrations.box",
+      "admin.registrations.table",
       "admin.registrations.apartment",
       "admin.registrations.status",
       "admin.registrations.date",
@@ -273,12 +273,13 @@ describe("translations", () => {
       "admin.waitlist.assign",
       "admin.waitlist.noEntries",
       "admin.waitlist.assigned",
-      "admin.waitlist.assignBoxId",
+      "admin.waitlist.assignTableId",
       "admin.waitlist.confirmAssign",
-      "admin.boxes.title",
-      "admin.boxes.greenhouse",
-      "admin.boxes.name",
-      "admin.boxes.state",
+      "admin.tables.title",
+      "admin.tables.number",
+      "admin.tables.size",
+      "admin.tables.price",
+      "admin.tables.state",
     ];
     for (const lang of LANGUAGES) {
       for (const key of adminKeys) {

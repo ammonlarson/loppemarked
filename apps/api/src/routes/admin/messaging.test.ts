@@ -184,19 +184,16 @@ describe("handleGetRecipients", () => {
     expect(body.count).toBe(1);
   });
 
-  it("filters by greenhouse for 'kronen' audience", async () => {
-    const mockRows = [
-      { email: "alice@test.com", name: "Alice", language: "da" },
-    ];
-    const mockDb = buildQueryMock(mockRows);
-
-    const result = await handleGetRecipients(
-      makeCtx({ db: mockDb, body: { audience: "kronen" } }),
-    );
-
-    expect(result.statusCode).toBe(200);
-    const body = result.body as { count: number };
-    expect(body.count).toBe(1);
+  it("rejects greenhouse-specific audience values", async () => {
+    try {
+      await handleGetRecipients(
+        makeCtx({ body: { audience: "kronen" } }),
+      );
+      expect.fail("should have thrown");
+    } catch (err) {
+      expect(err).toBeInstanceOf(AppError);
+      expect((err as AppError).statusCode).toBe(400);
+    }
   });
 });
 

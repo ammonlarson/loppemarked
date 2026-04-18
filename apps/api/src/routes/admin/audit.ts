@@ -183,19 +183,9 @@ export async function handleListAuditEvents(ctx: RequestContext): Promise<RouteR
     }
   }
 
-  let boxMap = new Map<number, string>();
-  if (boxIds.size > 0) {
-    const boxes = await ctx.db
-      .selectFrom("planter_boxes")
-      .select(["id", "name", "greenhouse_name"])
-      .where("id", "in", [...boxIds])
-      .execute();
-    boxMap = new Map(boxes.map((b) => [b.id, `${b.greenhouse_name} - ${b.name}`]));
-  }
-
   const boxLabels: Record<string, string> = {};
-  for (const [id, label] of boxMap) {
-    boxLabels[String(id)] = label;
+  for (const id of boxIds) {
+    boxLabels[String(id)] = `Table #${id}`;
   }
 
   return {

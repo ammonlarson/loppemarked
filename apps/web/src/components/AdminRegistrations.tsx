@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { BoxState } from "@loppemarked/shared";
 import {
-  BOX_CATALOG,
   ELIGIBLE_STREET,
   HOUSE_NUMBER_MIN,
   HOUSE_NUMBER_MAX,
+  TABLE_CATALOG,
+  formatTableLabel,
+  getTableById,
   isFloorDoorRequired,
   validateRegistrationInput,
   formatAddress,
@@ -64,8 +66,8 @@ const requiredLabelStyle: React.CSSProperties = {
   color: colors.warmBrown,
 };
 
-function formatBoxLabel(box: { id: number; name: string; greenhouse: string }): string {
-  return `${box.greenhouse} - ${box.name}`;
+function formatTableOption(table: { id: number; number: number; sizeMeters: number; priceDkk: number }): string {
+  return `${formatTableLabel(table.id, { includeDetails: true })}`;
 }
 
 const dialogStyle: React.CSSProperties = {
@@ -144,15 +146,15 @@ export function AdminRegistrations() {
     fetchBoxStates();
   }, [fetchBoxStates]);
 
-  const sortedBoxOptions = useMemo(() => {
-    return [...BOX_CATALOG]
-      .map((box) => ({
-        ...box,
-        occupied: boxStates.get(box.id) === "occupied",
+  const sortedTableOptions = useMemo(() => {
+    return [...TABLE_CATALOG]
+      .map((table) => ({
+        ...table,
+        occupied: boxStates.get(table.id) === "occupied",
       }))
       .sort((a, b) => {
         if (a.occupied !== b.occupied) return a.occupied ? 1 : -1;
-        return formatBoxLabel(a).localeCompare(formatBoxLabel(b));
+        return a.number - b.number;
       });
   }, [boxStates]);
 
@@ -190,10 +192,15 @@ export function AdminRegistrations() {
 
   const enrichedRegistrations = useMemo(
     () =>
-      registrations.map((r) => ({
-        ...r,
-        greenhouse: BOX_CATALOG.find((b) => b.id === r.box_id)?.greenhouse ?? "",
-      })),
+      registrations.map((r) => {
+        const table = getTableById(r.box_id);
+        return {
+          ...r,
+          table_number: table?.number ?? r.box_id,
+          table_size: table?.sizeMeters ?? 0,
+          table_price: table?.priceDkk ?? 0,
+        };
+      }),
     [registrations],
   );
 
@@ -455,12 +462,12 @@ export function AdminRegistrations() {
               </>
             )}
             <div>
-              <label htmlFor="add-box-id" style={requiredLabelStyle}>{t("admin.registrations.addBoxId")} *</label>
+              <label htmlFor="add-box-id" style={requiredLabelStyle}>{t("admin.registrations.addTableId")} *</label>
               <select id="add-box-id" value={addBoxId} onChange={(e) => setAddBoxId(e.target.value)} style={inputStyle}>
-                <option value="">{t("admin.registrations.selectBox")}</option>
-                {sortedBoxOptions.map((box) => (
-                  <option key={box.id} value={String(box.id)} disabled={box.occupied}>
-                    {formatBoxLabel(box)}{box.occupied ? " (occupied)" : ""}
+                <option value="">{t("admin.registrations.selectTable")}</option>
+                {sortedTableOptions.map((table) => (
+                  <option key={table.id} value={String(table.id)} disabled={table.occupied}>
+                    {formatTableOption(table)}{table.occupied ? " (occupied)" : ""}
                   </option>
                 ))}
               </select>
@@ -551,20 +558,20 @@ export function AdminRegistrations() {
             {t("admin.registrations.move")} – {activeDialog.registration.name}
           </h3>
           <div style={{ marginBottom: "0.75rem" }}>
-            <label htmlFor="move-new-box-id" style={labelStyle}>{t("admin.registrations.newBoxId")}</label>
+            <label htmlFor="move-new-box-id" style={labelStyle}>{t("admin.registrations.newTableId")}</label>
             <select
               id="move-new-box-id"
               value={moveNewBoxId}
               onChange={(e) => setMoveNewBoxId(e.target.value)}
               style={{ ...inputStyle, maxWidth: 300 }}
             >
-              <option value="">{t("admin.registrations.selectBox")}</option>
-              {sortedBoxOptions.map((box) => {
-                const isCurrentBox = activeDialog.type === "move" && box.id === activeDialog.registration.box_id;
-                const isOccupied = box.occupied && !isCurrentBox;
+              <option value="">{t("admin.registrations.selectTable")}</option>
+              {sortedTableOptions.map((table) => {
+                const isCurrentTable = activeDialog.type === "move" && table.id === activeDialog.registration.box_id;
+                const isOccupied = table.occupied && !isCurrentTable;
                 return (
-                  <option key={box.id} value={String(box.id)} disabled={isOccupied}>
-                    {formatBoxLabel(box)}{isOccupied ? " (occupied)" : ""}
+                  <option key={table.id} value={String(table.id)} disabled={isOccupied}>
+                    {formatTableOption(table)}{isOccupied ? " (occupied)" : ""}
                   </option>
                 );
               })}
@@ -736,8 +743,9 @@ export function AdminRegistrations() {
               <tr style={{ textAlign: "left" }}>
                 <SortableHeader label={t("admin.registrations.name")} sortKey="name" sort={sort} onToggle={toggleSort} />
                 <SortableHeader label={t("admin.registrations.email")} sortKey="email" sort={sort} onToggle={toggleSort} />
-                <SortableHeader label={t("admin.registrations.box")} sortKey="box_id" sort={sort} onToggle={toggleSort} />
-                <SortableHeader label={t("admin.registrations.greenhouse")} sortKey="greenhouse" sort={sort} onToggle={toggleSort} />
+                <SortableHeader label={t("admin.registrations.table")} sortKey="table_number" sort={sort} onToggle={toggleSort} />
+                <SortableHeader label={t("admin.registrations.tableSize")} sortKey="table_size" sort={sort} onToggle={toggleSort} />
+                <SortableHeader label={t("admin.registrations.tablePrice")} sortKey="table_price" sort={sort} onToggle={toggleSort} />
                 <SortableHeader label={t("admin.registrations.apartment")} sortKey="apartment_key" sort={sort} onToggle={toggleSort} />
                 <SortableHeader label={t("admin.registrations.status")} sortKey="status" sort={sort} onToggle={toggleSort} />
                 <SortableHeader label={t("admin.registrations.date")} sortKey="created_at" sort={sort} onToggle={toggleSort} />
@@ -749,8 +757,9 @@ export function AdminRegistrations() {
                 <tr key={reg.id} style={{ borderBottom: `1px solid ${colors.parchment}` }}>
                   <td style={{ padding: "0.5rem" }}>{reg.name}</td>
                   <td style={{ padding: "0.5rem" }}>{reg.email}</td>
-                  <td style={{ padding: "0.5rem" }}>{BOX_CATALOG.find((b) => b.id === reg.box_id)?.name ?? `Box ${reg.box_id}`}</td>
-                  <td style={{ padding: "0.5rem" }}>{reg.greenhouse}</td>
+                  <td style={{ padding: "0.5rem" }}>#{reg.table_number}</td>
+                  <td style={{ padding: "0.5rem" }}>{reg.table_size} m</td>
+                  <td style={{ padding: "0.5rem" }}>{reg.table_price} DKK</td>
                   <td style={{ padding: "0.5rem", fontSize: "0.8rem" }}>{formatAddress(reg.street, reg.house_number, reg.floor, reg.door)}</td>
                   <td style={{ padding: "0.5rem" }}>
                     <span

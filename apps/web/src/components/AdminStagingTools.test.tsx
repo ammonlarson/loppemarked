@@ -17,14 +17,14 @@ describe("AdminStagingTools", () => {
 
     expect(screen.getByText("admin.staging.title")).toBeDefined();
     expect(screen.getByText("admin.staging.warning")).toBeDefined();
-    expect(screen.getAllByText("admin.staging.fillBoxes")).toHaveLength(2);
+    expect(screen.getAllByText("admin.staging.fillTables")).toHaveLength(2);
     expect(screen.getAllByText("admin.staging.clearRegistrations")).toHaveLength(2);
   });
 
   it("renders descriptions for both actions", () => {
     render(<AdminStagingTools />);
 
-    expect(screen.getByText("admin.staging.fillBoxesDescription")).toBeDefined();
+    expect(screen.getByText("admin.staging.fillTablesDescription")).toBeDefined();
     expect(screen.getByText("admin.staging.clearRegistrationsDescription")).toBeDefined();
   });
 
@@ -36,7 +36,7 @@ describe("AdminStagingTools", () => {
     render(<AdminStagingTools />);
 
     const buttons = screen.getAllByRole("button");
-    const fillButton = buttons.find((b) => b.textContent === "admin.staging.fillBoxes")!;
+    const fillButton = buttons.find((b) => b.textContent === "admin.staging.fillTables")!;
 
     await act(async () => {
       fireEvent.click(fillButton);
@@ -55,13 +55,13 @@ describe("AdminStagingTools", () => {
     render(<AdminStagingTools />);
 
     const buttons = screen.getAllByRole("button");
-    const fillButton = buttons.find((b) => b.textContent === "admin.staging.fillBoxes")!;
+    const fillButton = buttons.find((b) => b.textContent === "admin.staging.fillTables")!;
 
     await act(async () => {
       fireEvent.click(fillButton);
     });
 
-    expect(screen.getByRole("alert").textContent).toBe("25 admin.staging.fillBoxesSuccess");
+    expect(screen.getByRole("alert").textContent).toBe("25 admin.staging.fillTablesSuccess");
   });
 
   it("shows error message when fill boxes fails", async () => {
@@ -75,7 +75,7 @@ describe("AdminStagingTools", () => {
     render(<AdminStagingTools />);
 
     const buttons = screen.getAllByRole("button");
-    const fillButton = buttons.find((b) => b.textContent === "admin.staging.fillBoxes")!;
+    const fillButton = buttons.find((b) => b.textContent === "admin.staging.fillTables")!;
 
     await act(async () => {
       fireEvent.click(fillButton);
@@ -111,7 +111,7 @@ describe("AdminStagingTools", () => {
     render(<AdminStagingTools />);
 
     const buttons = screen.getAllByRole("button");
-    const fillButton = buttons.find((b) => b.textContent === "admin.staging.fillBoxes")!;
+    const fillButton = buttons.find((b) => b.textContent === "admin.staging.fillTables")!;
 
     await act(async () => {
       fireEvent.click(fillButton);
@@ -131,7 +131,7 @@ describe("AdminStagingTools", () => {
     render(<AdminStagingTools />);
 
     const buttons = screen.getAllByRole("button");
-    const fillButton = buttons.find((b) => b.textContent === "admin.staging.fillBoxes")!;
+    const fillButton = buttons.find((b) => b.textContent === "admin.staging.fillTables")!;
 
     await act(async () => {
       fireEvent.click(fillButton);
