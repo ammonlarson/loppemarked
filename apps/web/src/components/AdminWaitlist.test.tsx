@@ -123,7 +123,7 @@ describe("AdminWaitlist", () => {
       });
 
       expect(screen.getByText("admin.waitlist.confirmAssign – Carol")).toBeDefined();
-      expect(screen.getByLabelText("admin.waitlist.assignBoxId")).toBeDefined();
+      expect(screen.getByLabelText("admin.waitlist.assignTableId")).toBeDefined();
     });
 
     it("shows notification composer when box ID is entered", async () => {
@@ -137,7 +137,7 @@ describe("AdminWaitlist", () => {
         fireEvent.click(screen.getByText("admin.waitlist.assign"));
       });
 
-      fireEvent.change(screen.getByLabelText("admin.waitlist.assignBoxId"), { target: { value: "5" } });
+      fireEvent.change(screen.getByLabelText("admin.waitlist.assignTableId"), { target: { value: "5" } });
       expect(screen.getByTestId("notification-composer")).toBeDefined();
     });
 
@@ -160,7 +160,7 @@ describe("AdminWaitlist", () => {
         fireEvent.click(screen.getByText("admin.waitlist.assign"));
       });
 
-      const boxSelect = screen.getByLabelText("admin.waitlist.assignBoxId") as HTMLSelectElement;
+      const boxSelect = screen.getByLabelText("admin.waitlist.assignTableId") as HTMLSelectElement;
       const options = Array.from(boxSelect.options);
 
       const occupiedOption = options.find((o) => o.value === "1");
@@ -190,7 +190,7 @@ describe("AdminWaitlist", () => {
         fireEvent.click(screen.getByText("admin.waitlist.assign"));
       });
 
-      fireEvent.change(screen.getByLabelText("admin.waitlist.assignBoxId"), { target: { value: "5" } });
+      fireEvent.change(screen.getByLabelText("admin.waitlist.assignTableId"), { target: { value: "5" } });
 
       await act(async () => {
         fireEvent.click(screen.getByText("common.confirm"));
@@ -221,7 +221,7 @@ describe("AdminWaitlist", () => {
         fireEvent.click(screen.getByText("admin.waitlist.assign"));
       });
 
-      fireEvent.change(screen.getByLabelText("admin.waitlist.assignBoxId"), { target: { value: "5" } });
+      fireEvent.change(screen.getByLabelText("admin.waitlist.assignTableId"), { target: { value: "5" } });
 
       await act(async () => {
         fireEvent.click(screen.getByText("common.confirm"));
@@ -241,13 +241,13 @@ describe("AdminWaitlist", () => {
         fireEvent.click(screen.getByText("admin.waitlist.assign"));
       });
 
-      expect(screen.getByLabelText("admin.waitlist.assignBoxId")).toBeDefined();
+      expect(screen.getByLabelText("admin.waitlist.assignTableId")).toBeDefined();
 
       await act(async () => {
         fireEvent.click(screen.getByText("common.cancel"));
       });
 
-      expect(screen.queryByLabelText("admin.waitlist.assignBoxId")).toBeNull();
+      expect(screen.queryByLabelText("admin.waitlist.assignTableId")).toBeNull();
     });
 
     it("shows validation error for invalid box ID", async () => {

@@ -176,7 +176,7 @@ describe("handleListAuditEvents", () => {
     expect(whereFn).toHaveBeenCalledWith("action", "=", "admin_create");
   });
 
-  it("resolves box labels from planter_box entity events", async () => {
+  it("resolves table labels from planter_box entity events", async () => {
     const mockEvents = [
       {
         id: "evt-1",
@@ -192,8 +192,7 @@ describe("handleListAuditEvents", () => {
       },
     ];
 
-    const boxRows = [{ id: 5, name: "Blue Tit", greenhouse_name: "Kronen" }];
-    const { db } = createMockDb(mockEvents, [], boxRows);
+    const { db } = createMockDb(mockEvents, [], []);
 
     const res = await handleListAuditEvents(
       makeCtx({ adminId: "admin-1", db, body: {} }),
@@ -201,10 +200,10 @@ describe("handleListAuditEvents", () => {
 
     expect(res.statusCode).toBe(200);
     const body = res.body as { boxLabels: Record<string, string> };
-    expect(body.boxLabels).toEqual({ "5": "Kronen - Blue Tit" });
+    expect(body.boxLabels).toEqual({ "5": "Table #5" });
   });
 
-  it("resolves box labels from before/after box_id fields", async () => {
+  it("resolves table labels from before/after box_id fields", async () => {
     const mockEvents = [
       {
         id: "evt-1",
@@ -220,11 +219,7 @@ describe("handleListAuditEvents", () => {
       },
     ];
 
-    const boxRows = [
-      { id: 5, name: "Blue Tit", greenhouse_name: "Kronen" },
-      { id: 10, name: "Robin", greenhouse_name: "Søen" },
-    ];
-    const { db } = createMockDb(mockEvents, [], boxRows);
+    const { db } = createMockDb(mockEvents, [], []);
 
     const res = await handleListAuditEvents(
       makeCtx({ adminId: "admin-1", db, body: {} }),
@@ -232,7 +227,7 @@ describe("handleListAuditEvents", () => {
 
     expect(res.statusCode).toBe(200);
     const body = res.body as { boxLabels: Record<string, string> };
-    expect(body.boxLabels).toEqual({ "5": "Kronen - Blue Tit", "10": "Søen - Robin" });
+    expect(body.boxLabels).toEqual({ "5": "Table #5", "10": "Table #10" });
   });
 
   it("returns empty boxLabels when no box IDs are present", async () => {

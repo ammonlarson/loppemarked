@@ -1,4 +1,3 @@
-import { KRONEN_BOX_RANGE, SOEN_BOX_RANGE } from "@loppemarked/shared";
 import type { Language } from "@loppemarked/shared";
 import { logAuditEvent } from "../../lib/audit.js";
 import { buildBulkEmailTemplate, wrapEmailHtml } from "../../lib/admin-email-templates.js";
@@ -7,9 +6,7 @@ import { badRequest, unauthorized } from "../../lib/errors.js";
 import { logger } from "../../lib/logger.js";
 import type { RequestContext, RouteResponse } from "../../router.js";
 
-type Audience = "all" | "kronen" | "søen";
-
-const VALID_AUDIENCES = new Set<string>(["all", "kronen", "søen"]);
+const VALID_AUDIENCES = new Set<string>(["all"]);
 
 interface Recipient {
   email: string;
@@ -17,22 +14,8 @@ interface Recipient {
   language: string;
 }
 
-function boxRangeForAudience(audience: Audience): { start: number; end: number } | null {
-  switch (audience) {
-    case "kronen":
-      return KRONEN_BOX_RANGE;
-    case "søen":
-      return SOEN_BOX_RANGE;
-    case "all":
-      return null;
-  }
-}
-
-async function queryRecipients(
-  ctx: RequestContext,
-  audience: Audience,
-): Promise<Recipient[]> {
-  let query = ctx.db
+async function queryRecipients(ctx: RequestContext): Promise<Recipient[]> {
+  const query = ctx.db
     .selectFrom("registrations")
     .innerJoin("planter_boxes", "planter_boxes.id", "registrations.box_id")
     .select([
@@ -41,13 +24,6 @@ async function queryRecipients(
       "registrations.language",
     ])
     .where("registrations.status", "=", "active");
-
-  const range = boxRangeForAudience(audience);
-  if (range) {
-    query = query
-      .where("registrations.box_id", ">=", range.start)
-      .where("registrations.box_id", "<=", range.end);
-  }
 
   const rows = await query.execute();
 
@@ -77,10 +53,10 @@ export async function handleGetRecipients(ctx: RequestContext): Promise<RouteRes
   const { audience } = body;
 
   if (!audience || !VALID_AUDIENCES.has(audience)) {
-    throw badRequest("audience must be one of: all, kronen, søen");
+    throw badRequest("audience must be: all");
   }
 
-  const recipients = await queryRecipients(ctx, audience as Audience);
+  const recipients = await queryRecipients(ctx);
 
   return {
     statusCode: 200,
@@ -183,7 +159,7 @@ export async function handleSendBulkEmail(ctx: RequestContext): Promise<RouteRes
   const { audience } = body;
 
   if (!audience || !VALID_AUDIENCES.has(audience)) {
-    throw badRequest("audience must be one of: all, kronen, søen");
+    throw badRequest("audience must be: all");
   }
 
   if (body.bilingual) {
@@ -208,7 +184,7 @@ export async function handleSendBulkEmail(ctx: RequestContext): Promise<RouteRes
     }
   }
 
-  const recipients = await queryRecipients(ctx, audience as Audience);
+  const recipients = await queryRecipients(ctx);
 
   if (recipients.length === 0) {
     throw badRequest("No recipients found for the selected audience");

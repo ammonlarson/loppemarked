@@ -24,7 +24,7 @@ describe("AdminBoxes", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders boxes with action buttons", async () => {
+  it("renders tables with action buttons", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
       ok: true,
       json: async () => mockBoxes,
@@ -34,11 +34,11 @@ describe("AdminBoxes", () => {
       render(<AdminBoxes />);
     });
 
-    expect(screen.getByText("admin.boxes.title")).toBeDefined();
-    expect(screen.getByText("Linaria")).toBeDefined();
-    expect(screen.getByText("admin.boxes.reserve")).toBeDefined();
-    expect(screen.getByText("admin.boxes.removeRegistration")).toBeDefined();
-    expect(screen.getByText("admin.boxes.release")).toBeDefined();
+    expect(screen.getByText("admin.tables.title")).toBeDefined();
+    expect(screen.getByText("#1")).toBeDefined();
+    expect(screen.getByText("admin.tables.reserve")).toBeDefined();
+    expect(screen.getByText("admin.tables.removeRegistration")).toBeDefined();
+    expect(screen.getByText("admin.tables.release")).toBeDefined();
   });
 
   it("shows reserve dialog when Reserve is clicked", async () => {
@@ -52,11 +52,11 @@ describe("AdminBoxes", () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText("admin.boxes.reserve"));
+      fireEvent.click(screen.getByText("admin.tables.reserve"));
     });
 
     expect(screen.getByRole("dialog")).toBeDefined();
-    expect(screen.getByText(/admin.boxes.confirmReserve/)).toBeDefined();
+    expect(screen.getByText(/admin.tables.confirmReserve/)).toBeDefined();
   });
 
   it("calls reserve API when confirmed", async () => {
@@ -72,7 +72,7 @@ describe("AdminBoxes", () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText("admin.boxes.reserve"));
+      fireEvent.click(screen.getByText("admin.tables.reserve"));
     });
 
     await act(async () => {
@@ -95,11 +95,11 @@ describe("AdminBoxes", () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText("admin.boxes.release"));
+      fireEvent.click(screen.getByText("admin.tables.release"));
     });
 
     expect(screen.getByRole("dialog")).toBeDefined();
-    expect(screen.getByText(/admin.boxes.confirmRelease/)).toBeDefined();
+    expect(screen.getByText(/admin.tables.confirmRelease/)).toBeDefined();
   });
 
   it("shows remove registration dialog with notification composer", async () => {
@@ -113,16 +113,16 @@ describe("AdminBoxes", () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText("admin.boxes.removeRegistration"));
+      fireEvent.click(screen.getByText("admin.tables.removeRegistration"));
     });
 
     expect(screen.getByRole("dialog")).toBeDefined();
-    expect(screen.getByText(/admin.boxes.confirmRemoveRegistration/)).toBeDefined();
-    expect(screen.getByText(/admin.boxes.occupiedBy/)).toBeDefined();
+    expect(screen.getByText(/admin.tables.confirmRemoveRegistration/)).toBeDefined();
+    expect(screen.getByText(/admin.tables.occupiedBy/)).toBeDefined();
     expect(screen.getByTestId("notification-composer")).toBeDefined();
   });
 
-  it("shows add registration dialog for available boxes", async () => {
+  it("shows add registration dialog for available tables", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
       ok: true,
       json: async () => mockBoxes,
@@ -132,7 +132,7 @@ describe("AdminBoxes", () => {
       render(<AdminBoxes />);
     });
 
-    const addButtons = screen.getAllByText("admin.boxes.addRegistration");
+    const addButtons = screen.getAllByText("admin.tables.addRegistration");
     await act(async () => {
       fireEvent.click(addButtons[0]);
     });
@@ -152,7 +152,7 @@ describe("AdminBoxes", () => {
       render(<AdminBoxes />);
     });
 
-    const addButtons = screen.getAllByText("admin.boxes.addRegistration");
+    const addButtons = screen.getAllByText("admin.tables.addRegistration");
     await act(async () => {
       fireEvent.click(addButtons[0]);
     });
@@ -174,7 +174,7 @@ describe("AdminBoxes", () => {
       render(<AdminBoxes />);
     });
 
-    const addButtons = screen.getAllByText("admin.boxes.addRegistration");
+    const addButtons = screen.getAllByText("admin.tables.addRegistration");
     await act(async () => {
       fireEvent.click(addButtons[0]);
     });
@@ -196,13 +196,13 @@ describe("AdminBoxes", () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText("admin.boxes.removeRegistration"));
+      fireEvent.click(screen.getByText("admin.tables.removeRegistration"));
     });
 
     expect(scrollMock).toHaveBeenCalledWith({ behavior: "smooth", block: "nearest" });
   });
 
-  it("shows registrant name next to occupied box", async () => {
+  it("shows registrant name next to booked table", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
       ok: true,
       json: async () => mockBoxes,
@@ -236,10 +236,10 @@ describe("AdminBoxes", () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText("admin.boxes.reserve"));
+      fireEvent.click(screen.getByText("admin.tables.reserve"));
     });
 
-    const removeBtn = screen.getByText("admin.boxes.removeRegistration");
+    const removeBtn = screen.getByText("admin.tables.removeRegistration");
     expect(removeBtn.hasAttribute("disabled")).toBe(true);
   });
 });

@@ -118,6 +118,22 @@ export function getTableById(id: number): TableCatalogEntry | undefined {
   return TABLE_CATALOG.find((t) => t.id === id);
 }
 
+/**
+ * Human-readable flea-market table label used in admin UI and
+ * admin-facing email templates.
+ *
+ * Falls back gracefully when the id is outside the catalog
+ * so callers can handle ad-hoc entity ids without extra guards.
+ */
+export function formatTableLabel(id: number, opts: { includeDetails?: boolean } = {}): string {
+  const table = getTableById(id);
+  if (!table) return `Table #${id}`;
+  if (opts.includeDetails) {
+    return `Table #${table.number} · ${table.sizeMeters} m · ${table.priceDkk} DKK`;
+  }
+  return `Table #${table.number}`;
+}
+
 /** Kronen box ID range */
 export const KRONEN_BOX_RANGE = { start: 1, end: 14 } as const;
 

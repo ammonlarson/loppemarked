@@ -1,6 +1,6 @@
 import {
-  BOX_CATALOG,
   ORGANIZER_CONTACTS,
+  getTableById,
 } from "@loppemarked/shared";
 import type { Language } from "@loppemarked/shared";
 
@@ -24,22 +24,23 @@ export interface NotificationPreview {
 
 const translations = {
   da: {
-    addSubject: "Bekræftelse af din plantekasse-registrering – UN17 Village Loppemarked",
-    moveSubject: "Ændring af din plantekasse – UN17 Village Loppemarked",
-    removeSubject: "Din plantekasse-registrering er fjernet – UN17 Village Loppemarked",
+    addSubject: "Bekræftelse af din loppebord-booking – UN17 Village Loppemarked",
+    moveSubject: "Ændring af dit loppebord – UN17 Village Loppemarked",
+    removeSubject: "Din loppebord-booking er fjernet – UN17 Village Loppemarked",
 
     greeting: (name: string) => `Kære ${name},`,
-    addIntro: "Du er blevet tilmeldt en plantekasse i UN17 Village Loppemarked. Din registrering er nu bekræftet.",
-    moveIntro: "Din plantekasse-registrering i UN17 Village Loppemarked er blevet ændret.",
-    moveDetail: (oldBoxName: string, oldGreenhouse: string, newBoxName: string, newGreenhouse: string) =>
-      `Din plantekasse er blevet flyttet fra "${oldBoxName}" i ${oldGreenhouse} til "${newBoxName}" i ${newGreenhouse}.`,
-    removeIntro: "Vi skriver for at informere dig om, at din plantekasse-registrering i UN17 Village Loppemarked er blevet fjernet.",
-    removeDetail: (boxName: string, greenhouse: string) =>
-      `Din registrering for plantekasse "${boxName}" i ${greenhouse} er ikke længere aktiv.`,
+    addIntro: "Du har booket et loppebord til UN17 Village Loppemarked. Din booking er nu bekræftet.",
+    moveIntro: "Din loppebord-booking til UN17 Village Loppemarked er blevet ændret.",
+    moveDetail: (oldLabel: string, newLabel: string) =>
+      `Dit loppebord er blevet flyttet fra ${oldLabel} til ${newLabel}.`,
+    removeIntro: "Vi skriver for at informere dig om, at din loppebord-booking til UN17 Village Loppemarked er blevet fjernet.",
+    removeDetail: (label: string) =>
+      `Din booking for ${label} er ikke længere aktiv.`,
 
-    boxDetailsTitle: "Din plantekasse",
-    boxLabel: "Kasse",
-    greenhouseLabel: "Drivhus",
+    tableDetailsTitle: "Dit loppebord",
+    tableLabel: "Bord",
+    sizeLabel: "Størrelse",
+    priceLabel: "Pris",
 
     contactTitle: "Kontakt",
     contactText: "Hvis du har spørgsmål, er du velkommen til at kontakte os:",
@@ -47,22 +48,23 @@ const translations = {
     teamSignature: "UN17 Village Loppemarked-teamet",
   },
   en: {
-    addSubject: "Confirmation of your planter box registration – UN17 Village Loppemarked",
-    moveSubject: "Change to your planter box – UN17 Village Loppemarked",
-    removeSubject: "Your planter box registration has been removed – UN17 Village Loppemarked",
+    addSubject: "Confirmation of your flea-market table booking – UN17 Village Loppemarked",
+    moveSubject: "Change to your flea-market table – UN17 Village Loppemarked",
+    removeSubject: "Your flea-market table booking has been removed – UN17 Village Loppemarked",
 
     greeting: (name: string) => `Dear ${name},`,
-    addIntro: "You have been registered for a planter box in UN17 Village Loppemarked. Your registration is now confirmed.",
-    moveIntro: "Your planter box registration in UN17 Village Loppemarked has been updated.",
-    moveDetail: (oldBoxName: string, oldGreenhouse: string, newBoxName: string, newGreenhouse: string) =>
-      `Your planter box has been moved from "${oldBoxName}" in ${oldGreenhouse} to "${newBoxName}" in ${newGreenhouse}.`,
-    removeIntro: "We are writing to let you know that your planter box registration in UN17 Village Loppemarked has been removed.",
-    removeDetail: (boxName: string, greenhouse: string) =>
-      `Your registration for planter box "${boxName}" in ${greenhouse} is no longer active.`,
+    addIntro: "You have booked a table for UN17 Village Loppemarked. Your booking is now confirmed.",
+    moveIntro: "Your flea-market table booking for UN17 Village Loppemarked has been updated.",
+    moveDetail: (oldLabel: string, newLabel: string) =>
+      `Your flea-market table has been moved from ${oldLabel} to ${newLabel}.`,
+    removeIntro: "We are writing to let you know that your flea-market table booking for UN17 Village Loppemarked has been removed.",
+    removeDetail: (label: string) =>
+      `Your booking for ${label} is no longer active.`,
 
-    boxDetailsTitle: "Your planter box",
-    boxLabel: "Box",
-    greenhouseLabel: "Greenhouse",
+    tableDetailsTitle: "Your flea-market table",
+    tableLabel: "Table",
+    sizeLabel: "Size",
+    priceLabel: "Price",
 
     contactTitle: "Contact",
     contactText: "If you have any questions, feel free to reach out to us:",
@@ -80,26 +82,38 @@ function escapeHtml(text: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function buildBoxDetailsHtml(
+function buildTableDetailsHtml(
   t: (typeof translations)["da"] | (typeof translations)["en"],
   boxId: number,
 ): string {
-  const box = BOX_CATALOG.find((b) => b.id === boxId);
-  const boxName = box?.name ?? `Box ${boxId}`;
-  const greenhouse = box?.greenhouse ?? "Unknown";
+  const table = getTableById(boxId);
+  const tableNumber = table?.number ?? boxId;
+  const size = table ? `${table.sizeMeters} m` : "\u2014";
+  const price = table ? `${table.priceDkk} DKK` : "\u2014";
 
   return `
-      <h2 style="color: #2e7d32; font-size: 18px; border-bottom: 2px solid #e8f5e9; padding-bottom: 8px;">${escapeHtml(t.boxDetailsTitle)}</h2>
+      <h2 style="color: #2e7d32; font-size: 18px; border-bottom: 2px solid #e8f5e9; padding-bottom: 8px;">${escapeHtml(t.tableDetailsTitle)}</h2>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
         <tr>
-          <td style="padding: 8px 12px; background: #f5f5f5; font-weight: bold; width: 40%;">${escapeHtml(t.boxLabel)}</td>
-          <td style="padding: 8px 12px;">${escapeHtml(boxName)}</td>
+          <td style="padding: 8px 12px; background: #f5f5f5; font-weight: bold; width: 40%;">${escapeHtml(t.tableLabel)}</td>
+          <td style="padding: 8px 12px;">#${tableNumber}</td>
         </tr>
         <tr>
-          <td style="padding: 8px 12px; background: #f5f5f5; font-weight: bold;">${escapeHtml(t.greenhouseLabel)}</td>
-          <td style="padding: 8px 12px;">${escapeHtml(greenhouse)}</td>
+          <td style="padding: 8px 12px; background: #f5f5f5; font-weight: bold;">${escapeHtml(t.sizeLabel)}</td>
+          <td style="padding: 8px 12px;">${escapeHtml(size)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 12px; background: #f5f5f5; font-weight: bold;">${escapeHtml(t.priceLabel)}</td>
+          <td style="padding: 8px 12px;">${escapeHtml(price)}</td>
         </tr>
       </table>`;
+}
+
+function tableLabelFor(boxId: number | undefined, t: (typeof translations)["da"] | (typeof translations)["en"]): string {
+  if (boxId == null) return `${t.tableLabel} #?`;
+  const table = getTableById(boxId);
+  const tableNumber = table?.number ?? boxId;
+  return `${t.tableLabel} #${tableNumber}`;
 }
 
 function buildContactHtml(
@@ -146,13 +160,13 @@ function wrapEmailHtml(language: Language, subject: string, contentHtml: string)
 
 function buildAddNotification(data: NotificationPreviewInput): NotificationPreview {
   const t = translations[data.language];
-  const boxDetailsHtml = buildBoxDetailsHtml(t, data.boxId);
+  const tableDetailsHtml = buildTableDetailsHtml(t, data.boxId);
   const contactHtml = buildContactHtml(t);
 
   const contentHtml = `
       <p style="margin-top: 0;">${escapeHtml(t.greeting(data.recipientName))}</p>
       <p>${escapeHtml(t.addIntro)}</p>
-      ${boxDetailsHtml}
+      ${tableDetailsHtml}
       ${contactHtml}
       <p style="margin-top: 28px;">${escapeHtml(t.closing)}</p>
       <p style="font-weight: bold;">${escapeHtml(t.teamSignature)}</p>`;
@@ -168,23 +182,19 @@ function buildAddNotification(data: NotificationPreviewInput): NotificationPrevi
 function buildMoveNotification(data: NotificationPreviewInput): NotificationPreview {
   const t = translations[data.language];
 
-  const oldBox = data.oldBoxId ? BOX_CATALOG.find((b) => b.id === data.oldBoxId) : null;
-  const oldBoxName = oldBox?.name ?? (data.oldBoxId != null ? `Box ${data.oldBoxId}` : "Unknown");
-  const oldGreenhouse = oldBox?.greenhouse ?? "Unknown";
-  const newBox = BOX_CATALOG.find((b) => b.id === data.boxId);
-  const newBoxName = newBox?.name ?? `Box ${data.boxId}`;
-  const newGreenhouse = newBox?.greenhouse ?? "Unknown";
+  const oldLabel = tableLabelFor(data.oldBoxId, t);
+  const newLabel = tableLabelFor(data.boxId, t);
 
-  const boxDetailsHtml = buildBoxDetailsHtml(t, data.boxId);
+  const tableDetailsHtml = buildTableDetailsHtml(t, data.boxId);
   const contactHtml = buildContactHtml(t);
 
   const contentHtml = `
       <p style="margin-top: 0;">${escapeHtml(t.greeting(data.recipientName))}</p>
       <p>${escapeHtml(t.moveIntro)}</p>
       <div style="background: #e3f2fd; border-left: 4px solid #1976d2; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">
-        <p style="margin: 0; color: #0d47a1;">${escapeHtml(t.moveDetail(oldBoxName, oldGreenhouse, newBoxName, newGreenhouse))}</p>
+        <p style="margin: 0; color: #0d47a1;">${escapeHtml(t.moveDetail(oldLabel, newLabel))}</p>
       </div>
-      ${boxDetailsHtml}
+      ${tableDetailsHtml}
       ${contactHtml}
       <p style="margin-top: 28px;">${escapeHtml(t.closing)}</p>
       <p style="font-weight: bold;">${escapeHtml(t.teamSignature)}</p>`;
@@ -200,9 +210,7 @@ function buildMoveNotification(data: NotificationPreviewInput): NotificationPrev
 function buildRemoveNotification(data: NotificationPreviewInput): NotificationPreview {
   const t = translations[data.language];
 
-  const box = BOX_CATALOG.find((b) => b.id === data.boxId);
-  const boxName = box?.name ?? `Box ${data.boxId}`;
-  const greenhouse = box?.greenhouse ?? "Unknown";
+  const label = tableLabelFor(data.boxId, t);
 
   const contactHtml = buildContactHtml(t);
 
@@ -210,7 +218,7 @@ function buildRemoveNotification(data: NotificationPreviewInput): NotificationPr
       <p style="margin-top: 0;">${escapeHtml(t.greeting(data.recipientName))}</p>
       <p>${escapeHtml(t.removeIntro)}</p>
       <div style="background: #fce4ec; border-left: 4px solid #c62828; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">
-        <p style="margin: 0; color: #b71c1c;">${escapeHtml(t.removeDetail(boxName, greenhouse))}</p>
+        <p style="margin: 0; color: #b71c1c;">${escapeHtml(t.removeDetail(label))}</p>
       </div>
       ${contactHtml}
       <p style="margin-top: 28px;">${escapeHtml(t.closing)}</p>

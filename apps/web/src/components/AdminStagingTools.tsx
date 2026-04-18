@@ -10,8 +10,8 @@ export function AdminStagingTools() {
   const [clearing, setClearing] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  async function handleFillBoxes() {
-    if (!window.confirm(t("admin.staging.fillBoxesConfirm"))) return;
+  async function handleFillTables() {
+    if (!window.confirm(t("admin.staging.fillTablesConfirm"))) return;
 
     setMessage(null);
     setFilling(true);
@@ -38,10 +38,10 @@ export function AdminStagingTools() {
       const body: { filledCount: number } = await res.json();
       setMessage({
         type: "success",
-        text: `${body.filledCount} ${t("admin.staging.fillBoxesSuccess")}`,
+        text: `${body.filledCount} ${t("admin.staging.fillTablesSuccess")}`,
       });
     } catch (err) {
-      console.error("Failed to fill boxes:", err);
+      console.error("Failed to fill tables:", err);
       setMessage({ type: "error", text: t("common.error") });
     } finally {
       setFilling(false);
@@ -128,14 +128,14 @@ export function AdminStagingTools() {
           }}
         >
           <h3 style={{ margin: "0 0 0.5rem", fontFamily: fonts.body, color: colors.warmBrown, fontSize: "1rem" }}>
-            {t("admin.staging.fillBoxes")}
+            {t("admin.staging.fillTables")}
           </h3>
           <p style={{ margin: "0 0 0.75rem", fontSize: "0.85rem", color: colors.warmBrown }}>
-            {t("admin.staging.fillBoxesDescription")}
+            {t("admin.staging.fillTablesDescription")}
           </p>
           <button
             type="button"
-            onClick={handleFillBoxes}
+            onClick={handleFillTables}
             disabled={filling || clearing}
             style={{
               padding: "0.5rem 1rem",
@@ -148,7 +148,7 @@ export function AdminStagingTools() {
               fontFamily: fonts.body,
             }}
           >
-            {filling ? t("common.loading") : t("admin.staging.fillBoxes")}
+            {filling ? t("common.loading") : t("admin.staging.fillTables")}
           </button>
         </div>
 
