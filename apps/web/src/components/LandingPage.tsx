@@ -1,7 +1,8 @@
 "use client";
 
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { fonts, colors } from "@/styles/theme";
+import { colors } from "@/styles/theme";
+import "@/styles/landing.css";
 
 interface LandingPageProps {
   onEnter?: () => void;
@@ -12,8 +13,6 @@ export function LandingPage({ onEnter }: LandingPageProps) {
 
   return (
     <section className="flea-landing" aria-labelledby="flea-landing-title">
-      <style>{landingStyles}</style>
-
       <div className="flea-landing__hero">
         <div className="flea-landing__hero-copy">
           <span className="flea-landing__eyebrow" aria-hidden>
@@ -23,7 +22,12 @@ export function LandingPage({ onEnter }: LandingPageProps) {
             {t("landing.heroTitle")}
           </h1>
           <p className="flea-landing__body">{t("landing.heroBody")}</p>
-          <MarketScene />
+          <MarketScene
+            knitwearLabel={t("landing.vignetteKnitwearLabel")}
+            blanketLabel={t("landing.vignetteBlanketLabel")}
+            jewelryLabel={t("landing.vignetteJewelryLabel")}
+            cameraLabel={t("landing.vignetteCameraLabel")}
+          />
         </div>
         <HeroIllustration />
       </div>
@@ -43,14 +47,14 @@ export function LandingPage({ onEnter }: LandingPageProps) {
             value: t("landing.eventPlaceValue"),
             tilt: 2.5,
             icon: <PinIcon />,
-            tint: "#F4E8D4",
+            tint: colors.fleaNotePaperWarm,
           },
           {
             label: t("landing.eventTimeLabel"),
             value: t("landing.eventTimeValue"),
             tilt: -1.5,
             icon: <ClockIcon />,
-            tint: "#F7EEDD",
+            tint: colors.fleaNotePaperLight,
           },
         ]}
       />
@@ -137,7 +141,7 @@ function HeroIllustration() {
           </linearGradient>
           <linearGradient id="fleaFloor" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={colors.fleaSand} />
-            <stop offset="100%" stopColor="#D7B98E" />
+            <stop offset="100%" stopColor={colors.fleaFloorShadow} />
           </linearGradient>
         </defs>
 
@@ -240,19 +244,26 @@ function HeroIllustration() {
   );
 }
 
-function MarketScene() {
+interface MarketSceneProps {
+  knitwearLabel: string;
+  blanketLabel: string;
+  jewelryLabel: string;
+  cameraLabel: string;
+}
+
+function MarketScene({ knitwearLabel, blanketLabel, jewelryLabel, cameraLabel }: MarketSceneProps) {
   return (
-    <div className="flea-vignettes" aria-hidden>
-      <VignetteItem tint={colors.fleaSage} rotate={-4}>
+    <div className="flea-vignettes" role="list">
+      <VignetteItem tint={colors.fleaSage} rotate={-4} label={knitwearLabel}>
         <SweaterIcon />
       </VignetteItem>
-      <VignetteItem tint={colors.fleaSand} rotate={3}>
+      <VignetteItem tint={colors.fleaSand} rotate={3} label={blanketLabel}>
         <BlanketIcon />
       </VignetteItem>
-      <VignetteItem tint={colors.fleaTerracotta} rotate={-2}>
+      <VignetteItem tint={colors.fleaTerracotta} rotate={-2} label={jewelryLabel}>
         <JewelryIcon />
       </VignetteItem>
-      <VignetteItem tint={colors.fleaCorkDark} rotate={4}>
+      <VignetteItem tint={colors.fleaCorkDark} rotate={4} label={cameraLabel}>
         <CameraIcon />
       </VignetteItem>
     </div>
@@ -263,14 +274,19 @@ function VignetteItem({
   children,
   tint,
   rotate,
+  label,
 }: {
   children: React.ReactNode;
   tint: string;
   rotate: number;
+  label: string;
 }) {
   return (
     <span
       className="flea-vignette"
+      role="listitem"
+      aria-label={label}
+      title={label}
       style={{ background: tint, transform: `rotate(${rotate}deg)` }}
     >
       {children}
@@ -354,249 +370,3 @@ function CameraIcon() {
     </svg>
   );
 }
-
-const landingStyles = `
-  .flea-landing {
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: 2rem 1.25rem 1.5rem;
-    font-family: ${fonts.sans};
-    color: ${colors.fleaPenInk};
-    position: relative;
-  }
-
-  .flea-landing__hero {
-    display: grid;
-    grid-template-columns: 1.05fr 0.95fr;
-    gap: 2rem;
-    align-items: center;
-    padding: 1.5rem 0 2rem;
-  }
-
-  .flea-landing__eyebrow {
-    display: inline-block;
-    font-family: ${fonts.marker};
-    color: ${colors.fleaTerracottaDark};
-    font-size: 1.15rem;
-    letter-spacing: 0.12em;
-    margin-bottom: 0.5rem;
-  }
-
-  .flea-landing__title {
-    font-family: ${fonts.display};
-    font-size: clamp(2.5rem, 6vw, 4.25rem);
-    line-height: 1.02;
-    letter-spacing: 0.03em;
-    color: ${colors.fleaTerracottaDark};
-    margin: 0 0 1rem;
-    font-weight: 700;
-  }
-
-  .flea-landing__body {
-    font-family: ${fonts.sans};
-    font-size: 1.05rem;
-    line-height: 1.65;
-    color: ${colors.fleaPenInk};
-    margin: 0 0 1.25rem;
-    max-width: 36rem;
-  }
-
-  .flea-hero-illustration {
-    position: relative;
-    aspect-ratio: 1 / 1;
-    max-width: 420px;
-    width: 100%;
-    justify-self: center;
-    filter: drop-shadow(0 8px 18px rgba(91, 70, 54, 0.14));
-  }
-
-  .flea-vignettes {
-    display: flex;
-    gap: 0.65rem;
-    margin-top: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .flea-vignette {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(91, 70, 54, 0.18);
-  }
-
-  .flea-corkboard {
-    margin: 1rem auto 2rem;
-    max-width: 860px;
-  }
-
-  .flea-corkboard__frame {
-    background: linear-gradient(180deg, #8A5F3E, #6A4626);
-    padding: 14px;
-    border-radius: 14px;
-    box-shadow: 0 12px 30px rgba(91, 70, 54, 0.18), inset 0 0 0 2px rgba(255,255,255,0.06);
-  }
-
-  .flea-corkboard__surface {
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
-    padding: 2rem 1.5rem;
-    border-radius: 8px;
-    background-color: ${colors.fleaCork};
-    background-image:
-      radial-gradient(circle at 12% 18%, rgba(138, 95, 60, 0.28) 0 1.2px, transparent 1.6px),
-      radial-gradient(circle at 32% 72%, rgba(74, 50, 30, 0.35) 0 1.4px, transparent 1.8px),
-      radial-gradient(circle at 64% 24%, rgba(138, 95, 60, 0.32) 0 1.2px, transparent 1.6px),
-      radial-gradient(circle at 82% 62%, rgba(74, 50, 30, 0.32) 0 1.4px, transparent 1.8px),
-      radial-gradient(circle at 48% 48%, rgba(160, 122, 85, 0.45) 0 1.2px, transparent 1.6px),
-      radial-gradient(circle at 8% 84%, rgba(74, 50, 30, 0.25) 0 1.2px, transparent 1.6px),
-      radial-gradient(circle at 92% 12%, rgba(74, 50, 30, 0.25) 0 1.2px, transparent 1.6px);
-    background-size: 120px 120px, 160px 160px, 180px 180px, 140px 140px, 200px 200px, 150px 150px, 170px 170px;
-    box-shadow: inset 0 0 0 2px rgba(74, 50, 30, 0.2), inset 0 0 24px rgba(74, 50, 30, 0.25);
-  }
-
-  .flea-note {
-    position: relative;
-    padding: 1.5rem 1.1rem 1rem;
-    border-radius: 3px;
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.22), 0 1px 0 rgba(0,0,0,0.08);
-    min-height: 130px;
-    text-align: left;
-    color: ${colors.fleaPenInk};
-  }
-
-  .flea-note__pin {
-    position: absolute;
-    top: -6px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #E46E52, #8A3A26 70%);
-    box-shadow: 0 2px 3px rgba(0,0,0,0.35);
-  }
-
-  .flea-note__icon {
-    margin-bottom: 0.35rem;
-  }
-
-  .flea-note__label {
-    font-family: ${fonts.marker};
-    font-weight: 700;
-    font-size: 1.35rem;
-    letter-spacing: 0.05em;
-    color: ${colors.fleaTerracottaDark};
-    text-transform: uppercase;
-  }
-
-  .flea-note__value {
-    font-family: ${fonts.marker};
-    font-size: 1.2rem;
-    line-height: 1.3;
-    color: ${colors.fleaPenInk};
-  }
-
-  .flea-landing__cta-wrap {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    margin: 0.5rem auto 1rem;
-    position: relative;
-    flex-wrap: wrap;
-  }
-
-  .flea-landing__cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.65rem;
-    background: ${colors.fleaTerracotta};
-    color: ${colors.fleaCream};
-    border: none;
-    padding: 0.95rem 1.9rem;
-    border-radius: 999px;
-    font-family: ${fonts.marker};
-    font-size: 1.4rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    cursor: pointer;
-    box-shadow: 0 8px 18px rgba(166, 86, 66, 0.28);
-    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
-  }
-
-  .flea-landing__cta:hover:not(:disabled) {
-    background: ${colors.fleaTerracottaDark};
-    transform: translateY(-1px);
-    box-shadow: 0 10px 22px rgba(166, 86, 66, 0.32);
-  }
-
-  .flea-landing__cta:disabled {
-    cursor: default;
-    opacity: 0.85;
-  }
-
-  .flea-price-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: ${colors.fleaSand};
-    color: ${colors.fleaPenInk};
-    padding: 0.4rem 0.9rem 0.4rem 1.1rem;
-    border-radius: 4px 16px 16px 4px;
-    font-family: ${fonts.marker};
-    font-size: 1.05rem;
-    box-shadow: 0 3px 6px rgba(91, 70, 54, 0.18);
-    transform: rotate(-4deg);
-    position: relative;
-  }
-
-  .flea-price-tag__hole {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: ${colors.fleaCream};
-    box-shadow: inset 0 0 0 1px ${colors.fleaCorkDark};
-  }
-
-  .flea-price-tag__text {
-    font-weight: 600;
-  }
-
-  @media (max-width: 760px) {
-    .flea-landing__hero {
-      grid-template-columns: 1fr;
-      gap: 1rem;
-      text-align: center;
-      padding: 1rem 0 1.5rem;
-    }
-
-    .flea-landing__body {
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .flea-vignettes {
-      justify-content: center;
-    }
-
-    .flea-corkboard__surface {
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-      padding: 1.5rem 1rem;
-    }
-
-    .flea-hero-illustration {
-      max-width: 300px;
-    }
-
-    .flea-landing__cta {
-      font-size: 1.25rem;
-      padding: 0.85rem 1.5rem;
-    }
-  }
-`;

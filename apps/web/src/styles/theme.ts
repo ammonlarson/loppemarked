@@ -35,7 +35,14 @@ export const colors = {
   fleaCream: "#FDFBF7",
   fleaCork: "#C89F76",
   fleaCorkDark: "#A07A55",
+  fleaCorkFrame: "#8A5F3E",
+  fleaCorkFrameDark: "#6A4626",
   fleaNotePaper: "#FBF4E1",
+  fleaNotePaperWarm: "#F4E8D4",
+  fleaNotePaperLight: "#F7EEDD",
+  fleaFloorShadow: "#D7B98E",
+  fleaPinLight: "#E46E52",
+  fleaPinDark: "#8A3A26",
   fleaPenInk: "#5B4636",
 };
 

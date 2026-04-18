@@ -22,7 +22,6 @@ const PRE_OPEN_POLL_MS = 30_000;
 interface PublicStatus {
   isOpen: boolean;
   openingDatetime: string | null;
-  hasAvailableBoxes: boolean;
   serverTime?: string;
 }
 
