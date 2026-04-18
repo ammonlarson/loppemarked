@@ -41,7 +41,7 @@ docker run -d --name loppemarked-db \
   -e POSTGRES_DB=loppemarked \
   -e POSTGRES_USER=loppemarked \
   -e POSTGRES_PASSWORD=localdev \
-  -p 5432:5432 \
+  -p 5433:5432 \
   postgres:16
 ```
 
@@ -63,7 +63,7 @@ npm install
 ### 3. Run database migrations and seed data
 
 ```bash
-DB_PASSWORD=localdev npm run db:setup --workspace=@loppemarked/api
+DB_PORT=5433 DB_PASSWORD=localdev npm run db:setup --workspace=@loppemarked/api
 ```
 
 This runs all Kysely migrations and seeds greenhouses, planter boxes, system settings, and an initial admin account. The default admin password is `changeme123` (override with `SEED_ADMIN_PASSWORD`).
@@ -71,7 +71,7 @@ This runs all Kysely migrations and seeds greenhouses, planter boxes, system set
 ### 4. Start the API dev server
 
 ```bash
-DB_PASSWORD=localdev npm run dev --workspace=@loppemarked/api
+DB_PORT=5433 DB_PASSWORD=localdev npm run dev --workspace=@loppemarked/api
 ```
 
 The API starts on `http://localhost:3001` by default (override with `API_PORT`).
