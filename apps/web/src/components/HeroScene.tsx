@@ -1,12 +1,24 @@
 import type { CSSProperties, ReactNode } from "react";
 
 /**
+ * A single <source> entry for art-directed raster delivery. When `media` is
+ * set, the browser picks this source only when the query matches, letting the
+ * same layer ship a mobile crop and a desktop crop from one slot.
+ */
+export interface SceneAssetSource {
+  srcSet: string;
+  media?: string;
+  type?: string;
+}
+
+/**
  * One raster layer in a layered hero composition. An asset is optional; when
  * `src` is not provided, `placeholder` is rendered instead so that the layer
  * slot stays addressable while final art is still in production.
  */
 export interface SceneAsset {
   src?: string;
+  sources?: SceneAssetSource[];
   alt?: string;
   objectFit?: CSSProperties["objectFit"];
   objectPosition?: CSSProperties["objectPosition"];
@@ -64,26 +76,44 @@ interface SceneLayerProps {
 
 function SceneLayer({ asset, variant }: SceneLayerProps) {
   if (!asset) return null;
+  const loading = variant === "bg" ? "eager" : "lazy";
+  const imgStyle: CSSProperties = {
+    objectFit: asset.objectFit ?? "cover",
+    objectPosition: asset.objectPosition,
+    ...asset.style,
+  };
+
+  const renderImg = () =>
+    asset.src ? (
+      <img
+        src={asset.src}
+        alt={asset.alt ?? ""}
+        loading={loading}
+        decoding="async"
+        style={imgStyle}
+      />
+    ) : null;
+
   return (
     <div
       className={`hero-scene__layer hero-scene__layer--${variant}`}
       aria-hidden="true"
       data-testid={`hero-scene-layer-${variant}`}
     >
-      {asset.src ? (
-        <img
-          src={asset.src}
-          alt={asset.alt ?? ""}
-          loading={variant === "bg" ? "eager" : "lazy"}
-          decoding="async"
-          style={{
-            objectFit: asset.objectFit ?? "cover",
-            objectPosition: asset.objectPosition,
-            ...asset.style,
-          }}
-        />
+      {asset.sources && asset.sources.length > 0 ? (
+        <picture>
+          {asset.sources.map((source, i) => (
+            <source
+              key={`${source.media ?? "default"}-${i}`}
+              srcSet={source.srcSet}
+              media={source.media}
+              type={source.type}
+            />
+          ))}
+          {renderImg()}
+        </picture>
       ) : (
-        asset.placeholder ?? null
+        (renderImg() ?? asset.placeholder ?? null)
       )}
     </div>
   );

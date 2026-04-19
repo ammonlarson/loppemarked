@@ -4,10 +4,6 @@ import type { SceneAsset } from "@/components/HeroScene";
  * Asset slots for the landing-page layered hero. Each slot is optional and can
  * be pointed at a new raster without changing any component code — that's the
  * contract this file exists to uphold.
- *
- * The placeholder background keeps the scene visually intact while final
- * photorealistic assets are still in production (ticket #24 is explicitly
- * scoped to the architecture, not the final art).
  */
 export interface LandingSceneAssets {
   background?: SceneAsset;
@@ -15,13 +11,31 @@ export interface LandingSceneAssets {
   foreground?: SceneAsset;
 }
 
+export const LANDING_MOBILE_MEDIA_QUERY = "(max-width: 760px)";
+
 export const landingSceneAssets: LandingSceneAssets = {
   background: {
-    src: "/landing.png",
+    src: "/landing/landing-hero-desktop.webp",
+    sources: [
+      {
+        srcSet: "/landing/landing-hero-mobile.webp",
+        media: LANDING_MOBILE_MEDIA_QUERY,
+        type: "image/webp",
+      },
+      {
+        srcSet: "/landing/landing-hero-desktop.webp",
+        type: "image/webp",
+      },
+    ],
     alt: "",
     objectFit: "cover",
     objectPosition: "center bottom",
   },
   midground: undefined,
-  foreground: undefined,
+  foreground: {
+    src: "/landing/landing-props-foreground.webp",
+    alt: "",
+    objectFit: "contain",
+    objectPosition: "center bottom",
+  },
 };
