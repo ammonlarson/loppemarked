@@ -91,8 +91,9 @@
   font-size: 1.05rem;
   line-height: 1.65;
   color: #5B4636;
-  margin: 0;
+  margin: 0 auto;
   max-width: 36rem;
+  text-align: center;
 }
 
 /* Corkboard sits directly on the hero — the wooden frame, cork surface, and
