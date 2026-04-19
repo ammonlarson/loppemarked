@@ -36,10 +36,12 @@ export interface HeroSceneProps {
 }
 
 /**
- * Layered hero composition primitive. Renders up to three raster layers
- * (background, midground, foreground) behind a live-DOM overlay slot so the
- * landing page can composite photography plus real text/controls without
- * rebuilding the page structure whenever assets change.
+ * Layered hero composition primitive. Stacks up to three raster layers around
+ * a live-DOM overlay slot: `background` and `midground` sit behind the
+ * overlay, `foreground` composites on top of it so props read like objects in
+ * front of the scene. Overlay layers use `pointer-events: none`, so
+ * interactive overlay content stays clickable through transparent parts of
+ * the foreground raster.
  */
 export function HeroScene({
   background,

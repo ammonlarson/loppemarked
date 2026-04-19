@@ -29,12 +29,17 @@
 
 .hero-scene__layer--bg { z-index: 1; }
 .hero-scene__layer--mid { z-index: 2; }
-.hero-scene__layer--fg { z-index: 3; }
 
 .hero-scene__overlay {
   position: relative;
-  z-index: 4;
+  z-index: 3;
 }
+
+/* Foreground props sit in front of the overlay so they composite over the
+   corkboard like real objects in front of the scene. Layers have
+   pointer-events: none (see .hero-scene__layer) so interactive overlay
+   content stays clickable through transparent parts of the prop asset. */
+.hero-scene__layer--fg { z-index: 4; }
 
 /* Scene framing: cream gradient fallback only visible if the hero raster
    fails to load. The hero image renders at 100% opacity on top of this. */
