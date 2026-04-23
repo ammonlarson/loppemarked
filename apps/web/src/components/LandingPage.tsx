@@ -39,6 +39,10 @@ export function LandingPage({ onEnter }: LandingPageProps) {
               {t("landing.heroTitle")}
             </h1>
             <p className="flea-landing__body">{t("landing.heroBody")}</p>
+            <p className="flea-landing__event">
+              <span className="flea-landing__event-date">{t("landing.eventDate")}</span>
+              <span className="flea-landing__event-time">{t("landing.eventTime")}</span>
+            </p>
           </div>
         </div>
       </HeroScene>

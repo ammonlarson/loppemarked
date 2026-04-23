@@ -103,6 +103,30 @@
   text-align: center;
 }
 
+.flea-landing__event {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  margin: 0.9rem auto 0;
+  font-family: "Caveat", "Amatic SC", cursive;
+  color: #A85544;
+  text-align: center;
+}
+
+.flea-landing__event-date {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+}
+
+.flea-landing__event-time {
+  font-size: 1.25rem;
+  color: #5B4636;
+  line-height: 1.2;
+}
+
 .flea-landing__cta-wrap {
   display: flex;
   justify-content: center;
