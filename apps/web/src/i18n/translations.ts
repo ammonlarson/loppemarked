@@ -26,7 +26,7 @@ const da = {
 
   "landing.heroTitle": "FORÅRETS LOPPEMARKED I FÆLLEDHUSET",
   "landing.heroBody":
-    "Tilmeld dig vores hyggelige loppemarked UN17 Village. Book dit loppebord og giv dine ting nyt liv i fællesskabets rammer. Så de to.",
+    "Tilmeld dig vores hyggelige loppemarked i UN17 Village. Book dit loppebord og giv dine ting nyt liv i fællesskabets rammer. Vi ses!",
   "landing.corkboardTitle": "Opslagstavlen",
   "landing.eventDateLabel": "DATO",
   "landing.eventDateValue": "Søndag d. 24. Maj, 2026.",
@@ -39,7 +39,6 @@ const da = {
   "landing.vignetteCameraLabel": "Minder & vinyl",
   "landing.vignetteJewelryLabel": "Smykkeskrin",
   "landing.vignetteBlanketLabel": "Tæpper & tekstiler",
-  "landing.fleaTagLabel": "Loppefund",
 
   "map.viewMap": "Se kort",
   "map.back": "Tilbage til forsiden",
@@ -431,9 +430,9 @@ const en: Record<TranslationKey, string> = {
   "greenhouse.occupied": "Occupied",
   "greenhouse.reserved": "Reserved",
 
-  "landing.heroTitle": "SPRING FLEA MARKET AT FÆLLEDHUSET",
+  "landing.heroTitle": "SPRING LOPPEMARKED IN FÆLLEDHUSET",
   "landing.heroBody":
-    "Sign up for our cozy UN17 Village flea market. Book your table and give your things a new life within the frames of community. So the two.",
+    "Sign up for our cozy flea market at UN17 Village. Book your table and give your things new life within our community. See you there!",
   "landing.corkboardTitle": "The noticeboard",
   "landing.eventDateLabel": "DATE",
   "landing.eventDateValue": "Sunday 24 May, 2026.",
@@ -446,7 +445,6 @@ const en: Record<TranslationKey, string> = {
   "landing.vignetteCameraLabel": "Memories & vinyl",
   "landing.vignetteJewelryLabel": "Jewelry box",
   "landing.vignetteBlanketLabel": "Blankets & textiles",
-  "landing.fleaTagLabel": "Flea find",
 
   "map.viewMap": "View map",
   "map.back": "Back to landing",

@@ -96,7 +96,7 @@ The public landing page renders its hero as a layered composition rather than a 
 
 The architecture has two pieces:
 
-- `components/HeroScene.tsx` — a generic primitive that stacks up to three raster `<img>` layers (`background`, `midground`, `foreground`) behind a live-DOM overlay slot. Each layer is optional and accepts either a `src` or a `placeholder` node. Layers use absolute positioning with ascending `z-index`; the overlay sits on top and receives real DOM children (text, corkboard, CTA) so interactive content stays accessible and translatable.
+- `components/HeroScene.tsx` — a generic primitive that stacks up to three raster `<img>` layers around a live-DOM overlay slot. `background` and `midground` sit behind the overlay; `foreground` composites on top of it so props read like objects in front of the scene. Each layer is optional and accepts either a `src` or a `placeholder` node. Layers have `pointer-events: none`, so interactive overlay content stays clickable through transparent parts of the foreground asset.
 - `components/landing/sceneConfig.ts` — a data file that names the landing hero's asset slots. Swapping or adding an asset is a config edit, not a component change.
 
 ```mermaid
@@ -115,6 +115,19 @@ graph TB
 ```
 
 The overlay currently hosts the eyebrow, H1, body copy, corkboard, and primary CTA. Because the overlay is plain DOM, i18n, hover states, and focus management all work as usual.
+
+#### Landing-Page Asset Pack
+
+Raster assets consumed by the landing-page scene live in `apps/web/public/landing/`. The pipeline is deliberately boring: drop a file, reference it from `sceneConfig.ts` or `landing.css`, ship.
+
+File-naming convention: `landing-<role>[-<variant>].<ext>`. Today the pack includes:
+
+- `landing-hero-desktop.webp` — wide-crop hero backdrop for viewports above the mobile breakpoint.
+- `landing-hero-mobile.webp` — portrait-crop hero backdrop for `max-width: 760px` viewports.
+- `landing-corkboard.webp` — corkboard surface used as the `.flea-corkboard` background-image; the wooden frame and three pinned notes are baked into the asset and the notes' text is positioned absolutely on top.
+- `landing-props-foreground.webp` — transparent prop composite wired into the hero's `foreground` slot, which composites on top of the overlay so the props read as being in front of the corkboard.
+
+Art direction between the desktop and mobile hero crops runs through the `<picture>` element: `SceneAsset.sources` accepts a list of `{ srcSet, media, type }` entries that `HeroScene` renders as `<source>` children, with `src` acting as the fallback for browsers that skip `<picture>`. The mobile media query lives in `LANDING_MOBILE_MEDIA_QUERY` in `sceneConfig.ts` to keep the CSS breakpoint and the art-direction breakpoint aligned. Sizing: keep desktop crops ≥ 2400px wide and mobile crops ≥ 1400px wide, and export as WebP to stay under a few hundred KB per asset.
 
 ## Backend Architecture
 
