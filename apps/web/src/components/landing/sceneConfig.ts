@@ -28,16 +28,5 @@ export const landingSceneAssets: LandingSceneAssets = {
     objectPosition: "center bottom",
   },
   midground: undefined,
-  foreground: {
-    src: "/landing/landing-props-foreground.webp",
-    alt: "",
-    style: {
-      position: "absolute",
-      bottom: 0,
-      left: 0, 
-      width: "100%",
-      height: "auto",
-      transform: "translateY(15%)",
-    },
-  },
+  foreground: undefined,
 };

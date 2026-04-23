@@ -49,10 +49,6 @@
   pointer-events: auto;
 }
 
-/* Foreground props sit in front of the overlay so they composite over the
-   corkboard like real objects in front of the scene. Layers have
-   pointer-events: none (see .hero-scene__layer) so interactive overlay
-   content stays clickable through transparent parts of the prop asset. */
 .hero-scene__layer--fg { z-index: 4; }
 
 /* Scene framing: cream gradient fallback only visible if the hero raster
