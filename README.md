@@ -41,7 +41,7 @@ docker run -d --name loppemarked-db \
   -e POSTGRES_DB=loppemarked \
   -e POSTGRES_USER=loppemarked \
   -e POSTGRES_PASSWORD=localdev \
-  -p 5432:5432 \
+  -p 5433:5432 \
   postgres:16
 ```
 
@@ -89,7 +89,7 @@ The Next.js dev server starts on `http://localhost:3000` and proxies API routes 
 | Variable              | Default       | Description                     |
 | --------------------- | ------------- | ------------------------------- |
 | `DB_HOST`             | `localhost`   | PostgreSQL host                 |
-| `DB_PORT`             | `5432`        | PostgreSQL port                 |
+| `DB_PORT`             | `5433`        | PostgreSQL port (host-mapped; container still listens on 5432) |
 | `DB_NAME`             | `loppemarked`  | Database name                   |
 | `DB_USER`             | `loppemarked`  | Database user                   |
 | `DB_PASSWORD`         | (empty)       | Database password               |

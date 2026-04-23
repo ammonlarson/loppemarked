@@ -9,7 +9,7 @@ const INITIAL_PASSWORD = process.env["SEED_ADMIN_PASSWORD"] ?? "changeme123";
 async function main() {
   const db = createDatabase({
     host: process.env["DB_HOST"] ?? "localhost",
-    port: Number(process.env["DB_PORT"] ?? "5432"),
+    port: Number(process.env["DB_PORT"] ?? "5433"),
     database: process.env["DB_NAME"] ?? "loppemarked",
     user: process.env["DB_USER"] ?? "loppemarked",
     password: process.env["DB_PASSWORD"] ?? "",

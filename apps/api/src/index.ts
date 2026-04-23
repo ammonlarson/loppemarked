@@ -164,7 +164,7 @@ async function ensureDb(): Promise<ReturnType<typeof createDatabase>> {
     const password = await resolveDbPassword();
     db = createDatabase({
       host: process.env["DB_HOST"] ?? "localhost",
-      port: Number(process.env["DB_PORT"] ?? "5432"),
+      port: Number(process.env["DB_PORT"] ?? "5433"),
       database: process.env["DB_NAME"] ?? "loppemarked",
       user: process.env["DB_USER"] ?? "loppemarked",
       password,
