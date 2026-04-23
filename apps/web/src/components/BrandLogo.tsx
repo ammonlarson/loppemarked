@@ -144,7 +144,7 @@ export function BrandLogo({
             <tspan dy="-1">7</tspan>
           </text>
           <text
-            x="84"
+            x="70"
             y="40"
             fontFamily={fonts.marker}
             fontWeight={600}
