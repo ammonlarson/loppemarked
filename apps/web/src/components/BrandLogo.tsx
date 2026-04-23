@@ -144,7 +144,7 @@ export function BrandLogo({
             <tspan dy="-1">7</tspan>
           </text>
           <text
-            x="92"
+            x="84"
             y="40"
             fontFamily={fonts.marker}
             fontWeight={600}
@@ -161,7 +161,7 @@ export function BrandLogo({
           </text>
           {/* Hand-drawn underline swoosh under Village */}
           <path
-            d="M92 46 q18 4 36 1 q14 -2 30 1"
+            d="M84 46 q18 4 36 1 q14 -2 30 1"
             stroke={resolvedColor}
             strokeWidth="1.4"
             strokeLinecap="round"
