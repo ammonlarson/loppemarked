@@ -27,6 +27,8 @@ const da = {
   "landing.heroTitle": "2026 FORÅRETS LOPPEMARKED I FÆLLEDHUSET",
   "landing.heroBody":
     "Tilmeld dig vores hyggelige loppemarked i UN17 Village. Book dit loppebord og giv dine ting nyt liv i fællesskabets rammer. Vi ses!",
+  "landing.eventDate": "Søndag d. 24. maj 2026",
+  "landing.eventTime": "Kl. 12.00–14.30 (opstilling fra kl. 11.00)",
   "landing.primaryCta": "Træd ind i Fælledhuset",
   "landing.vignetteKnitwearLabel": "Strik & uld",
   "landing.vignetteCameraLabel": "Minder & vinyl",
@@ -426,6 +428,8 @@ const en: Record<TranslationKey, string> = {
   "landing.heroTitle": "2026 SPRING LOPPEMARKED IN FÆLLEDHUSET",
   "landing.heroBody":
     "Sign up for our cozy flea market at UN17 Village. Book your table and give your things new life within our community. See you there!",
+  "landing.eventDate": "Sunday, May 24, 2026",
+  "landing.eventTime": "12:00–2:30 PM (setup from 11:00 AM)",
   "landing.primaryCta": "Step into Fælledhuset",
   "landing.vignetteKnitwearLabel": "Knits & wool",
   "landing.vignetteCameraLabel": "Memories & vinyl",
