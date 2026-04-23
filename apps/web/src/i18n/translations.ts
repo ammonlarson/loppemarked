@@ -24,7 +24,7 @@ const da = {
   "greenhouse.occupied": "Optaget",
   "greenhouse.reserved": "Reserveret",
 
-  "landing.heroTitle": "FORÅRETS LOPPEMARKED I FÆLLEDHUSET",
+  "landing.heroTitle": "2026 FORÅRETS LOPPEMARKED I FÆLLEDHUSET",
   "landing.heroBody":
     "Tilmeld dig vores hyggelige loppemarked i UN17 Village. Book dit loppebord og giv dine ting nyt liv i fællesskabets rammer. Vi ses!",
   "landing.corkboardTitle": "Opslagstavlen",
@@ -430,7 +430,7 @@ const en: Record<TranslationKey, string> = {
   "greenhouse.occupied": "Occupied",
   "greenhouse.reserved": "Reserved",
 
-  "landing.heroTitle": "SPRING LOPPEMARKED IN FÆLLEDHUSET",
+  "landing.heroTitle": "2026 SPRING LOPPEMARKED IN FÆLLEDHUSET",
   "landing.heroBody":
     "Sign up for our cozy flea market at UN17 Village. Book your table and give your things new life within our community. See you there!",
   "landing.corkboardTitle": "The noticeboard",

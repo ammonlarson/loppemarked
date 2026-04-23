@@ -22,9 +22,6 @@ export function LandingPage({ onEnter }: LandingPageProps) {
       >
         <div className="flea-landing__overlay" data-testid="flea-landing-overlay">
           <div className="flea-landing__copy">
-            <span className="flea-landing__eyebrow" aria-hidden>
-              UN17 Village · 2026
-            </span>
             <h1 id="flea-landing-title" className="flea-landing__title">
               {t("landing.heroTitle")}
             </h1>
