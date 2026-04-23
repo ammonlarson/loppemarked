@@ -55,6 +55,8 @@ export const fonts = {
   display: "'Amatic SC', 'Caveat', cursive",
   marker: "'Caveat', 'Amatic SC', cursive",
   sans: "'Montserrat', 'Inter', system-ui, sans-serif",
+  // High-contrast editorial serif used on the public landing surface.
+  editorial: "'Fraunces', 'Playfair Display', Georgia, serif",
 };
 
 export const shadows = {

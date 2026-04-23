@@ -26,7 +26,7 @@ export function ProjectAbout() {
         color: colors.fleaTerracotta,
       }}>
         <div style={{ flex: 1, maxWidth: 200, height: 1, background: `linear-gradient(to right, transparent, ${colors.fleaSand})` }} />
-        <span aria-hidden style={{ fontFamily: fonts.display, fontSize: "1.75rem", lineHeight: 1 }}>
+        <span aria-hidden style={{ fontFamily: fonts.editorial, fontSize: "1.5rem", lineHeight: 1 }}>
           ✦
         </span>
         <div style={{ flex: 1, maxWidth: 200, height: 1, background: `linear-gradient(to left, transparent, ${colors.fleaSand})` }} />
@@ -34,10 +34,12 @@ export function ProjectAbout() {
 
       <h2
         style={{
-          fontFamily: fonts.display,
+          fontFamily: fonts.editorial,
           color: colors.fleaTerracottaDark,
-          fontSize: "1.85rem",
-          letterSpacing: "0.05em",
+          fontSize: "2rem",
+          fontWeight: 600,
+          letterSpacing: "-0.01em",
+          lineHeight: 1.1,
           margin: "0 0 0.5rem",
         }}
       >
@@ -65,7 +67,7 @@ export function ProjectAbout() {
       >
         {t("about.contact")}
       </p>
-      <p style={{ margin: 0, fontSize: "0.9rem", fontFamily: fonts.marker }}>
+      <p style={{ margin: 0, fontSize: "0.9rem", fontFamily: fonts.sans }}>
         <EventContactLink
           style={{ color: colors.fleaSageDark, textDecoration: "none", fontWeight: 600 }}
         />
