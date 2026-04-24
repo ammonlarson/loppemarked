@@ -1,9 +1,33 @@
+/*
+ * Landing page styling — scene-based composition.
+ *
+ * The page is treated as a single immersive scene: the hero raster paints the
+ * full viewport, copy sits on a paper card that overlaps the scene, and the
+ * CTA anchors to the bottom of the scene as a pressed, tactile element. All
+ * spacing and layering choices assume the raster is the primary surface and
+ * the live-DOM elements compose on top of it, rather than a stacked list of
+ * flat sections.
+ */
+
 .flea-landing {
+  --scene-ink: #2E1F14;
+  --scene-ink-soft: #4A382A;
+  --scene-cream: #FDFBF7;
+  --scene-paper: #F5E6CB;
+  --scene-paper-shade: #E9D3AE;
+  --scene-paper-edge: rgba(120, 82, 48, 0.35);
+  --scene-accent: #A85544;
+  --scene-accent-ink: #762C21;
+  --scene-accent-glow: #D8826E;
+  --scene-shadow-warm: rgba(110, 55, 32, 0.45);
+  --scene-shadow-deep: rgba(18, 12, 6, 0.5);
+  --scene-light-warm: rgba(255, 235, 195, 0.55);
+
   width: 100%;
   margin: 0;
   padding: 0;
   font-family: "Montserrat", "Inter", system-ui, sans-serif;
-  color: #5B4636;
+  color: var(--scene-ink-soft);
   position: relative;
 }
 
@@ -25,16 +49,22 @@
   width: 100%;
   height: 100%;
   display: block;
+  object-fit: cover;
 }
 
 .hero-scene__layer--bg { z-index: 1; }
 .hero-scene__layer--mid { z-index: 2; }
+.hero-scene__layer--fg { z-index: 4; }
 
 .hero-scene__overlay {
   position: relative;
   z-index: 3;
 }
 
+/* The CTA overlay fills the scene but its top padding skips past the area
+   the copy card occupies, then `align-items: center` vertically centers
+   the CTA in the remaining space — i.e. halfway between the bottom of the
+   header card and the bottom of the scene. */
 .hero-scene__overlay--above {
   z-index: 5;
   position: absolute;
@@ -42,6 +72,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: clamp(14rem, 38vh, 20rem) 1rem 0;
   pointer-events: none;
 }
 
@@ -49,143 +80,263 @@
   pointer-events: auto;
 }
 
-.hero-scene__layer--fg { z-index: 4; }
-
-/* Scene framing: cream gradient fallback only visible if the hero raster
-   fails to load. The hero image renders at 100% opacity on top of this. */
+/* The scene frame fills the viewport. The gradient is a deep, warm fallback
+   so that any moment before the raster paints still reads as a lit interior
+   rather than a blank cream canvas. */
 .flea-landing__scene {
-  border-radius: 0;
-  background: linear-gradient(180deg, #F0E3C9 0%, #FDFBF7 70%);
   min-height: 100vh;
+  min-height: 100svh;
+  background:
+    radial-gradient(ellipse at 50% 12%, var(--scene-light-warm), transparent 55%),
+    radial-gradient(ellipse at 50% 95%, rgba(40, 24, 14, 0.55), transparent 60%),
+    linear-gradient(180deg, #3B2A1E 0%, #6B4A33 45%, #A8784F 78%, #E0BE89 100%);
 }
 
+/* Scene-wide vignette riding above the raster layers. Sits at z-index 2 so
+   it composites above the bg/mid rasters but *under* the overlay (z: 3) —
+   without this gap, the multiply blend would darken the paper card. */
+.flea-landing__scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 35%, transparent 40%, rgba(20, 12, 6, 0.35) 100%),
+    linear-gradient(180deg, rgba(20, 12, 6, 0.25) 0%, transparent 18%, transparent 60%, rgba(10, 6, 2, 0.4) 100%);
+  mix-blend-mode: multiply;
+}
+
+/* Overlay centers the copy card near the top of the scene and reserves
+   bottom space for the CTA (which lives in the --above overlay). The grid
+   keeps the card's position predictable across breakpoints. */
 .flea-landing__overlay {
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-  padding: 2.25rem 1.75rem 1.75rem;
-  max-width: 960px;
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  align-content: start;
+  gap: 0;
+  padding: clamp(2rem, 8vh, 5rem) clamp(1.25rem, 6vw, 4rem) clamp(10rem, 18vh, 14rem);
   margin: 0 auto;
   min-height: 100vh;
-  box-sizing: border-box;
+  min-height: 100svh;
 }
 
-/* Frosted card keeps the eyebrow/title/body legible against the photorealistic
-   hero without dimming the image itself. */
+/* Paper card: realistic printed-note materiality. Multiple layered shadows
+   create a tangible drop + ambient cast so the card reads as sitting *in* the
+   scene rather than floating above it. The ::before adds a soft tonal gradient
+   for paper texture; ::after paints a contact shadow under the card. */
 .flea-landing__copy {
-  width: 100%;
+  position: relative;
   box-sizing: border-box;
-  padding: 1rem 1.25rem;
+  /* Prefer 50% of viewport width, but keep a 40rem floor so the card keeps
+     a strong horizontal presence on narrow laptops and phones, and clip to
+     100% of the overlay so the card never overflows its container when the
+     floor exceeds available space. */
+  width: min(100%, max(55rem, 56vw));
+  padding: 1.65rem 2.25rem 1.85rem;
   border-radius: 14px;
-  background-color: rgba(253, 251, 247, 0.35);
+  background:
+    radial-gradient(circle at 18% 8%, rgba(255, 255, 255, 0.28), transparent 55%),
+    linear-gradient(170deg, rgba(245, 230, 203, 0.5) 0%, rgba(233, 211, 174, 0.5) 100%);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  color: var(--scene-ink);
+  transform: rotate(-0.5deg) translateY(-40px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 0 0 1px var(--scene-paper-edge),
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    0 18px 28px -10px var(--scene-shadow-warm),
+    0 44px 70px -22px var(--scene-shadow-deep);
+}
+
+.flea-landing__copy::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.35), transparent 45%),
+    linear-gradient(315deg, rgba(138, 95, 62, 0.22), transparent 40%);
+  mix-blend-mode: overlay;
+  opacity: 0.85;
+}
+
+.flea-landing__copy::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -10px;
+  height: 14px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.3), transparent 70%);
+  filter: blur(6px);
+  pointer-events: none;
 }
 
 .flea-landing__title {
+  position: relative;
   font-family: "Amatic SC", "Caveat", cursive;
-  font-size: clamp(2.5rem, 6vw, 4.25rem);
+  font-size: clamp(2.75rem, 6.8vw, 4.75rem);
+  /* Leave headroom for Danish diacritics (å, æ, ø). */
   line-height: 1.02;
-  letter-spacing: 0.03em;
-  color: #A85544;
-  margin: 0 0 1rem;
+  letter-spacing: 0.02em;
+  color: var(--scene-accent-ink);
+  margin: 0 0 0.6rem;
   font-weight: 700;
   text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 245, 225, 0.65);
 }
 
 .flea-landing__body {
+  position: relative;
   font-family: "Montserrat", "Inter", system-ui, sans-serif;
-  font-size: 1.05rem;
-  line-height: 1.65;
-  color: #5B4636;
-  margin: 0 auto;
-  max-width: 36rem;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--scene-ink-soft);
+  margin: 0 auto 1.1rem;
+  max-width: 40rem;
   text-align: center;
 }
 
 .flea-landing__event {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.15rem;
-  margin: 0.9rem auto 0;
+  gap: 0.1rem;
+  margin: 0;
   font-family: "Caveat", "Amatic SC", cursive;
-  color: #A85544;
+  color: var(--scene-accent);
   text-align: center;
 }
 
 .flea-landing__event-date {
-  font-size: 1.75rem;
+  font-size: 1.95rem;
   font-weight: 700;
   letter-spacing: 0.01em;
-  line-height: 1.1;
+  line-height: 1;
 }
 
 .flea-landing__event-time {
-  font-size: 1.25rem;
-  color: #5B4636;
+  font-size: 1.2rem;
+  color: var(--scene-ink-soft);
   line-height: 1.2;
 }
 
+/* CTA wrapper anchors to scene-bottom via overlay--above. */
 .flea-landing__cta-wrap {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+  transform: translateY(-4rem);
 }
 
+/* Pressed, tactile CTA: gradient fill, inner highlight and shadow, a firm
+   bottom edge suggesting thickness, and layered drop shadows that reach into
+   the scene. Active state compresses the bottom edge for a physical press. */
 .flea-landing__cta {
   display: inline-flex;
   align-items: center;
   gap: 0.85rem;
-  background: #C6705D;
-  color: #FDFBF7;
-  border: none;
-  padding: 1.35rem 2.75rem;
+  background:
+    linear-gradient(180deg, var(--scene-accent-glow) 0%, var(--scene-accent) 55%, #924736 100%);
+  color: var(--scene-cream);
+  border: 1px solid rgba(110, 35, 24, 0.8);
+  padding: 1.2rem 2.5rem;
   border-radius: 999px;
   font-family: "Caveat", "Amatic SC", cursive;
   font-size: 1.9rem;
   font-weight: 600;
   letter-spacing: 0.03em;
   cursor: pointer;
-  box-shadow: 0 10px 24px rgba(166, 86, 66, 0.3);
-  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25),
+    0 2px 0 #6E2318,
+    0 12px 20px -2px rgba(110, 35, 24, 0.55),
+    0 32px 48px -12px rgba(0, 0, 0, 0.45);
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
 }
 
 .flea-landing__cta:hover:not(:disabled) {
-  background: #A85544;
   transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(166, 86, 66, 0.32);
+  filter: brightness(1.04);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28),
+    0 3px 0 #6E2318,
+    0 16px 26px -2px rgba(110, 35, 24, 0.6),
+    0 36px 54px -14px rgba(0, 0, 0, 0.5);
+}
+
+.flea-landing__cta:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.28),
+    0 0 0 #6E2318,
+    0 6px 10px -2px rgba(110, 35, 24, 0.45);
+}
+
+.flea-landing__cta:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28),
+    0 2px 0 #6E2318,
+    0 0 0 3px var(--scene-cream),
+    0 0 0 6px var(--scene-accent-ink),
+    0 16px 26px -2px rgba(110, 35, 24, 0.6),
+    0 36px 54px -14px rgba(0, 0, 0, 0.5);
 }
 
 .flea-landing__cta:disabled {
   cursor: default;
-  opacity: 0.85;
+  opacity: 0.5;
+  filter: saturate(0.5) brightness(0.95);
 }
 
 @media (max-width: 760px) {
-  .flea-landing__scene {
-    min-height: 100vh;
-  }
-
   .flea-landing__overlay {
-    padding: 1.5rem 1rem 1.25rem;
-    gap: 1.25rem;
-    text-align: center;
+    padding: clamp(1.5rem, 10vh, 3rem) 1rem clamp(2rem, 6vh, 3rem);
   }
 
   .flea-landing__copy {
-    margin: 0 auto;
+    width: 100%;
+    padding: 1.15rem 1.35rem 1.35rem;
+    transform: rotate(-0.35deg);
   }
 
   .flea-landing__body {
-    margin-left: auto;
-    margin-right: auto;
+    font-size: 0.95rem;
+  }
+
+  .hero-scene__overlay--above {
+    padding-top: clamp(16rem, 46vh, 22rem);
   }
 
   .flea-landing__cta {
-    font-size: 1.65rem;
-    padding: 1.15rem 2.1rem;
+    font-size: 1.55rem;
+    padding: 1rem 1.85rem;
+  }
+}
+
+/* Short viewports (landscape phones, compact laptops): tighten the overlay
+   padding-top so the centered CTA doesn't push below the fold. */
+@media (max-height: 640px) {
+  .flea-landing__overlay {
+    padding-top: clamp(1rem, 4vh, 2rem);
+    padding-bottom: clamp(1rem, 4vh, 2rem);
+  }
+
+  .hero-scene__overlay--above {
+    padding-top: clamp(9rem, 52vh, 14rem);
   }
 }
