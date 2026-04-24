@@ -1,8 +1,11 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { HeroScene } from "@/components/HeroScene";
 import { landingSceneAssets } from "@/components/landing/sceneConfig";
+import { MobileLandingScene } from "@/components/landing/MobileLandingScene";
+import { useIsMobileLanding } from "@/hooks/useIsMobileLanding";
 import "@/styles/landing.css";
 
 interface LandingPageProps {
@@ -10,43 +13,61 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onEnter }: LandingPageProps) {
-  const { t } = useLanguage();
+  const isMobile = useIsMobileLanding();
+  const ctaIcon = <KeyIcon />;
 
   return (
     <section className="flea-landing" aria-labelledby="flea-landing-title">
-      <HeroScene
-        className="flea-landing__scene"
-        background={landingSceneAssets.background}
-        midground={landingSceneAssets.midground}
-        foreground={landingSceneAssets.foreground}
-        overlayAbove={
-          <div className="flea-landing__cta-wrap">
-            <button
-              type="button"
-              className="flea-landing__cta"
-              onClick={onEnter}
-              disabled={!onEnter}
-            >
-              <KeyIcon />
-              <span>{t("landing.primaryCta")}</span>
-            </button>
-          </div>
-        }
-      >
-        <div className="flea-landing__overlay" data-testid="flea-landing-overlay">
-          <div className="flea-landing__copy">
-            <h1 id="flea-landing-title" className="flea-landing__title">
-              {t("landing.heroTitle")}
-            </h1>
-            <p className="flea-landing__body">{t("landing.heroBody")}</p>
-            <p className="flea-landing__event">
-              <span className="flea-landing__event-date">{t("landing.eventDate")}</span>
-              <span className="flea-landing__event-time">{t("landing.eventTime")}</span>
-            </p>
-          </div>
-        </div>
-      </HeroScene>
+      {isMobile ? (
+        <MobileLandingScene onEnter={onEnter} ctaIcon={ctaIcon} />
+      ) : (
+        <DesktopLandingScene onEnter={onEnter} ctaIcon={ctaIcon} />
+      )}
     </section>
+  );
+}
+
+interface DesktopLandingSceneProps {
+  onEnter?: () => void;
+  ctaIcon: ReactNode;
+}
+
+function DesktopLandingScene({ onEnter, ctaIcon }: DesktopLandingSceneProps) {
+  const { t } = useLanguage();
+
+  return (
+    <HeroScene
+      className="flea-landing__scene"
+      background={landingSceneAssets.background}
+      midground={landingSceneAssets.midground}
+      foreground={landingSceneAssets.foreground}
+      overlayAbove={
+        <div className="flea-landing__cta-wrap">
+          <button
+            type="button"
+            className="flea-landing__cta"
+            onClick={onEnter}
+            disabled={!onEnter}
+          >
+            {ctaIcon}
+            <span>{t("landing.primaryCta")}</span>
+          </button>
+        </div>
+      }
+    >
+      <div className="flea-landing__overlay" data-testid="flea-landing-overlay">
+        <div className="flea-landing__copy">
+          <h1 id="flea-landing-title" className="flea-landing__title">
+            {t("landing.heroTitle")}
+          </h1>
+          <p className="flea-landing__body">{t("landing.heroBody")}</p>
+          <p className="flea-landing__event">
+            <span className="flea-landing__event-date">{t("landing.eventDate")}</span>
+            <span className="flea-landing__event-time">{t("landing.eventTime")}</span>
+          </p>
+        </div>
+      </div>
+    </HeroScene>
   );
 }
 

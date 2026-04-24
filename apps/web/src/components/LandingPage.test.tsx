@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, afterEach } from "vitest";
+import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { LandingPage } from "./LandingPage";
 
@@ -6,7 +6,31 @@ vi.mock("@/i18n/LanguageProvider", () => ({
   useLanguage: () => ({ language: "en", ready: true, setLanguage: vi.fn(), t: (key: string) => key }),
 }));
 
-describe("LandingPage", () => {
+function mockMatchMedia(matches: boolean) {
+  const listeners = new Set<(event: MediaQueryListEvent) => void>();
+  const mql = {
+    matches,
+    media: "",
+    onchange: null,
+    addEventListener: (_: string, listener: (event: MediaQueryListEvent) => void) => {
+      listeners.add(listener);
+    },
+    removeEventListener: (_: string, listener: (event: MediaQueryListEvent) => void) => {
+      listeners.delete(listener);
+    },
+    addListener: () => {},
+    removeListener: () => {},
+    dispatchEvent: () => false,
+  };
+  window.matchMedia = vi.fn().mockImplementation(() => mql) as unknown as typeof window.matchMedia;
+  return { mql, listeners };
+}
+
+describe("LandingPage (desktop scene)", () => {
+  beforeEach(() => {
+    mockMatchMedia(false);
+  });
+
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
@@ -70,5 +94,77 @@ describe("LandingPage", () => {
     expect(section?.querySelector(".flea-hero-illustration")).toBeNull();
     expect(section?.querySelector(".flea-vignettes")).toBeNull();
     expect(section?.querySelector(".flea-vignette")).toBeNull();
+  });
+
+  it("does not mount the dedicated mobile composition when the viewport is wide", () => {
+    render(<LandingPage onEnter={() => {}} />);
+
+    expect(screen.queryByTestId("flea-landing-mobile")).toBeNull();
+  });
+});
+
+describe("LandingPage (mobile scene)", () => {
+  beforeEach(() => {
+    mockMatchMedia(true);
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+  });
+
+  it("renders the dedicated mobile composition rather than the desktop scene", () => {
+    render(<LandingPage onEnter={() => {}} />);
+
+    expect(screen.getByTestId("flea-landing-mobile")).toBeDefined();
+    expect(screen.queryByTestId("hero-scene")).toBeNull();
+  });
+
+  it("stacks the title, framed hero raster, paper-card copy, and CTA", () => {
+    render(<LandingPage onEnter={() => {}} />);
+
+    const mobile = screen.getByTestId("flea-landing-mobile");
+    const title = screen.getByText("landing.heroTitle");
+    const hero = screen.getByTestId("flea-landing-mobile-hero");
+    const copy = screen.getByTestId("flea-landing-overlay");
+    const cta = screen.getByRole("button", { name: /landing\.primaryCta/ });
+
+    expect(mobile.contains(title)).toBe(true);
+    expect(mobile.contains(hero)).toBe(true);
+    expect(mobile.contains(copy)).toBe(true);
+    expect(mobile.contains(cta)).toBe(true);
+
+    const children = Array.from(mobile.children);
+    const order = [title.closest("header"), hero, copy, cta.closest("div")];
+    order.forEach((node, index) => {
+      expect(node).not.toBeNull();
+      expect(children.indexOf(node as Element)).toBe(index);
+    });
+  });
+
+  it("uses the mobile hero asset directly rather than the shared picture source", () => {
+    render(<LandingPage onEnter={() => {}} />);
+
+    const img = screen
+      .getByTestId("flea-landing-mobile-hero")
+      .querySelector("img") as HTMLImageElement | null;
+    expect(img).not.toBeNull();
+    expect(img?.getAttribute("src")).toBe("/landing/landing-hero-mobile.webp");
+  });
+
+  it("fires onEnter when the mobile CTA is clicked", () => {
+    const handler = vi.fn();
+    render(<LandingPage onEnter={handler} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /landing\.primaryCta/ }));
+
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("disables the mobile CTA when no handler is provided", () => {
+    render(<LandingPage />);
+
+    const cta = screen.getByRole("button", { name: /landing\.primaryCta/ }) as HTMLButtonElement;
+    expect(cta.disabled).toBe(true);
   });
 });
