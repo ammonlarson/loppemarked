@@ -1,10 +1,22 @@
 import {
-  ORGANIZER_CONTACTS,
+  EVENT_CONTACT,
   getTableById,
 } from "@loppemarked/shared";
 import type { Language } from "@loppemarked/shared";
 
 export type AdminNotificationAction = "add" | "move" | "remove" | "waitlist_assign";
+
+const BRAND = {
+  green: "#8DA88D",
+  greenDark: "#6F8A6F",
+  greenSoft: "#E8EFE8",
+  salmon: "#C6705D",
+  salmonDark: "#A85544",
+  salmonSoft: "#FBEEEA",
+  cream: "#FDFBF7",
+  pageBg: "#F5F1EA",
+  ink: "#5B4636",
+} as const;
 
 export interface NotificationPreviewInput {
   action: AdminNotificationAction;
@@ -89,15 +101,15 @@ function buildTableDetailsHtml(
   const size = table ? `${table.sizeMeters} m` : "\u2014";
 
   return `
-      <h2 style="color: #2e7d32; font-size: 18px; border-bottom: 2px solid #e8f5e9; padding-bottom: 8px;">${escapeHtml(t.tableDetailsTitle)}</h2>
+      <h2 style="color: ${BRAND.greenDark}; font-size: 18px; border-bottom: 2px solid ${BRAND.greenSoft}; padding-bottom: 8px;">${escapeHtml(t.tableDetailsTitle)}</h2>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
         <tr>
-          <td style="padding: 8px 12px; background: #f5f5f5; font-weight: bold; width: 40%;">${escapeHtml(t.tableLabel)}</td>
-          <td style="padding: 8px 12px;">#${tableNumber}</td>
+          <td style="padding: 10px 12px; background: ${BRAND.greenSoft}; font-weight: bold; width: 40%; color: ${BRAND.ink};">${escapeHtml(t.tableLabel)}</td>
+          <td style="padding: 10px 12px; color: ${BRAND.salmonDark}; font-weight: bold; font-size: 18px;">#${tableNumber}</td>
         </tr>
         <tr>
-          <td style="padding: 8px 12px; background: #f5f5f5; font-weight: bold;">${escapeHtml(t.sizeLabel)}</td>
-          <td style="padding: 8px 12px;">${escapeHtml(size)}</td>
+          <td style="padding: 10px 12px; background: ${BRAND.greenSoft}; font-weight: bold; color: ${BRAND.ink};">${escapeHtml(t.sizeLabel)}</td>
+          <td style="padding: 10px 12px; color: ${BRAND.ink};">${escapeHtml(size)}</td>
         </tr>
       </table>`;
 }
@@ -112,17 +124,10 @@ function tableLabelFor(boxId: number | undefined, t: (typeof translations)["da"]
 function buildContactHtml(
   t: (typeof translations)["da"] | (typeof translations)["en"],
 ): string {
-  const contactListHtml = ORGANIZER_CONTACTS.map(
-    (c) =>
-      `<li><a href="mailto:${escapeHtml(c.email)}" style="color: #2e7d32;">${escapeHtml(c.name)}</a></li>`,
-  ).join("");
-
   return `
-      <h2 style="color: #2e7d32; font-size: 18px; border-bottom: 2px solid #e8f5e9; padding-bottom: 8px;">${escapeHtml(t.contactTitle)}</h2>
+      <h2 style="color: ${BRAND.greenDark}; font-size: 18px; border-bottom: 2px solid ${BRAND.greenSoft}; padding-bottom: 8px;">${escapeHtml(t.contactTitle)}</h2>
       <p>${escapeHtml(t.contactText)}</p>
-      <ul style="padding-left: 20px; line-height: 1.8;">
-        ${contactListHtml}
-      </ul>`;
+      <p style="margin: 8px 0 0;"><a href="mailto:${escapeHtml(EVENT_CONTACT.email)}" style="color: ${BRAND.salmonDark}; font-weight: 600; text-decoration: none;">${escapeHtml(EVENT_CONTACT.name)}</a></p>`;
 }
 
 function wrapEmailHtml(language: Language, subject: string, contentHtml: string): string {
@@ -133,18 +138,18 @@ function wrapEmailHtml(language: Language, subject: string, contentHtml: string)
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(subject)}</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333;">
-  <div style="max-width: 600px; margin: 0 auto; background: #fff;">
-    <div style="background: #2e7d32; padding: 24px 32px;">
-      <h1 style="margin: 0; color: #fff; font-size: 22px;">UN17 Village Loppemarked</h1>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: ${BRAND.pageBg}; color: ${BRAND.ink};">
+  <div style="max-width: 600px; margin: 0 auto; background: ${BRAND.cream};">
+    <div style="background: ${BRAND.green}; padding: 24px 32px; border-bottom: 4px solid ${BRAND.salmon};">
+      <h1 style="margin: 0; color: ${BRAND.cream}; font-size: 22px; letter-spacing: 0.02em;">UN17 Village Loppemarked</h1>
     </div>
 
     <div style="padding: 32px;">
       ${contentHtml}
     </div>
 
-    <div style="background: #f5f5f5; padding: 16px 32px; font-size: 12px; color: #888; text-align: center;">
-      <p style="margin: 0;">UN17 Village Loppemarked &ndash; UN17 Hub</p>
+    <div style="background: ${BRAND.salmon}; padding: 16px 32px; font-size: 12px; color: ${BRAND.cream}; text-align: center;">
+      <p style="margin: 0;">UN17 Village Loppemarked &middot; Fælledhuset</p>
     </div>
   </div>
 </body>
@@ -162,7 +167,7 @@ function buildAddNotification(data: NotificationPreviewInput): NotificationPrevi
       ${tableDetailsHtml}
       ${contactHtml}
       <p style="margin-top: 28px;">${escapeHtml(t.closing)}</p>
-      <p style="font-weight: bold;">${escapeHtml(t.teamSignature)}</p>`;
+      <p style="font-weight: bold; color: ${BRAND.greenDark};">${escapeHtml(t.teamSignature)}</p>`;
 
   return {
     subject: t.addSubject,
@@ -184,13 +189,13 @@ function buildMoveNotification(data: NotificationPreviewInput): NotificationPrev
   const contentHtml = `
       <p style="margin-top: 0;">${escapeHtml(t.greeting(data.recipientName))}</p>
       <p>${escapeHtml(t.moveIntro)}</p>
-      <div style="background: #e3f2fd; border-left: 4px solid #1976d2; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">
-        <p style="margin: 0; color: #0d47a1;">${escapeHtml(t.moveDetail(oldLabel, newLabel))}</p>
+      <div style="background: ${BRAND.salmonSoft}; border-left: 4px solid ${BRAND.salmon}; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">
+        <p style="margin: 0; color: ${BRAND.salmonDark};">${escapeHtml(t.moveDetail(oldLabel, newLabel))}</p>
       </div>
       ${tableDetailsHtml}
       ${contactHtml}
       <p style="margin-top: 28px;">${escapeHtml(t.closing)}</p>
-      <p style="font-weight: bold;">${escapeHtml(t.teamSignature)}</p>`;
+      <p style="font-weight: bold; color: ${BRAND.greenDark};">${escapeHtml(t.teamSignature)}</p>`;
 
   return {
     subject: t.moveSubject,
@@ -210,12 +215,12 @@ function buildRemoveNotification(data: NotificationPreviewInput): NotificationPr
   const contentHtml = `
       <p style="margin-top: 0;">${escapeHtml(t.greeting(data.recipientName))}</p>
       <p>${escapeHtml(t.removeIntro)}</p>
-      <div style="background: #fce4ec; border-left: 4px solid #c62828; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">
-        <p style="margin: 0; color: #b71c1c;">${escapeHtml(t.removeDetail(label))}</p>
+      <div style="background: ${BRAND.salmonSoft}; border-left: 4px solid ${BRAND.salmon}; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">
+        <p style="margin: 0; color: ${BRAND.salmonDark};">${escapeHtml(t.removeDetail(label))}</p>
       </div>
       ${contactHtml}
       <p style="margin-top: 28px;">${escapeHtml(t.closing)}</p>
-      <p style="font-weight: bold;">${escapeHtml(t.teamSignature)}</p>`;
+      <p style="font-weight: bold; color: ${BRAND.greenDark};">${escapeHtml(t.teamSignature)}</p>`;
 
   return {
     subject: t.removeSubject,
@@ -248,7 +253,7 @@ export function buildBulkEmailTemplate(language: Language): string {
 <p>${escapeHtml(t.placeholder)}</p>
 
 <p style="margin-top: 28px;">${escapeHtml(t.closing)}</p>
-<p style="font-weight: bold;">${escapeHtml(t.teamSignature)}</p>`;
+<p style="font-weight: bold; color: ${BRAND.greenDark};">${escapeHtml(t.teamSignature)}</p>`;
 }
 
 export { wrapEmailHtml };

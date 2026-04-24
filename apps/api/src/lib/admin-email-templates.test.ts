@@ -59,9 +59,16 @@ describe("buildAdminNotification — add", () => {
     expect(enResult.bodyHtml).toContain('lang="en"');
   });
 
-  it("includes contact info", () => {
+  it("includes event contact info", () => {
     const result = buildAdminNotification(baseInput);
-    expect(result.bodyHtml).toContain("elise7284@gmail.com");
+    expect(result.bodyHtml).toContain("ammonl@hotmail.com");
+    expect(result.bodyHtml).toContain("Ammon Larson");
+  });
+
+  it("does not include legacy organizer contacts", () => {
+    const result = buildAdminNotification(baseInput);
+    expect(result.bodyHtml).not.toContain("elise7284@gmail.com");
+    expect(result.bodyHtml).not.toContain("lena.filthaut@yahoo.com");
   });
 
   it("escapes HTML in recipient name", () => {
@@ -113,9 +120,10 @@ describe("buildAdminNotification — move", () => {
     expect(result.bodyHtml).toContain("#20");
   });
 
-  it("includes move detail callout with blue styling", () => {
+  it("includes move detail callout with brand salmon styling", () => {
     const result = buildAdminNotification(moveInput);
-    expect(result.bodyHtml).toContain("#1976d2");
+    expect(result.bodyHtml).toContain("#C6705D");
+    expect(result.bodyHtml).toContain("#A85544");
   });
 
   it("includes new table details table with number and size", () => {
@@ -124,9 +132,9 @@ describe("buildAdminNotification — move", () => {
     expect(result.bodyHtml).toContain("2 m");
   });
 
-  it("includes contact info", () => {
+  it("includes event contact info", () => {
     const result = buildAdminNotification(moveInput);
-    expect(result.bodyHtml).toContain("elise7284@gmail.com");
+    expect(result.bodyHtml).toContain("ammonl@hotmail.com");
   });
 });
 
@@ -156,9 +164,10 @@ describe("buildAdminNotification — remove", () => {
     expect(result.bodyHtml).toContain("#3");
   });
 
-  it("includes remove detail callout with red styling", () => {
+  it("includes remove detail callout with brand salmon styling", () => {
     const result = buildAdminNotification(removeInput);
-    expect(result.bodyHtml).toContain("#c62828");
+    expect(result.bodyHtml).toContain("#C6705D");
+    expect(result.bodyHtml).toContain("#A85544");
   });
 
   it("does not include box details table for remove action", () => {
@@ -166,15 +175,15 @@ describe("buildAdminNotification — remove", () => {
     expect(result.bodyHtml).not.toContain("boxDetailsTitle");
   });
 
-  it("includes contact info", () => {
+  it("includes event contact info", () => {
     const result = buildAdminNotification(removeInput);
-    expect(result.bodyHtml).toContain("elise7284@gmail.com");
+    expect(result.bodyHtml).toContain("ammonl@hotmail.com");
   });
 
-  it("includes UN17 Village Loppemarked header", () => {
+  it("includes UN17 Village Loppemarked header with brand green", () => {
     const result = buildAdminNotification(removeInput);
     expect(result.bodyHtml).toContain("UN17 Village Loppemarked");
-    expect(result.bodyHtml).toContain("#2e7d32");
+    expect(result.bodyHtml).toContain("#8DA88D");
   });
 });
 
@@ -225,15 +234,22 @@ describe("wrapEmailHtml", () => {
     expect(en).toContain('lang="en"');
   });
 
-  it("includes green header with project name", () => {
+  it("includes brand green header with project name", () => {
     const result = wrapEmailHtml("en", "Test", "<p>Body</p>");
     expect(result).toContain("UN17 Village Loppemarked");
-    expect(result).toContain("#2e7d32");
+    expect(result).toContain("#8DA88D");
+    expect(result).toContain("#C6705D");
   });
 
-  it("includes footer", () => {
+  it("does not use legacy palette colors", () => {
     const result = wrapEmailHtml("en", "Test", "<p>Body</p>");
-    expect(result).toContain("UN17 Hub");
+    expect(result).not.toContain("#2e7d32");
+    expect(result).not.toContain("#e8f5e9");
+  });
+
+  it("includes footer referencing Fælledhuset", () => {
+    const result = wrapEmailHtml("en", "Test", "<p>Body</p>");
+    expect(result).toContain("Fælledhuset");
   });
 
   it("includes the content html in the body", () => {
