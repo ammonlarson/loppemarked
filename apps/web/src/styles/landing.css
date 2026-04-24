@@ -131,17 +131,18 @@
 .flea-landing__copy {
   position: relative;
   box-sizing: border-box;
-  /* Prefer 70% of viewport width, but keep a 24rem floor so the card stays
-     readable on narrow phones, and clip to 100% of the overlay so the card
-     never overflows its container when 70vw exceeds available space. */
-  width: min(100%, max(24rem, 70vw));
+  /* Prefer 50% of viewport width, but keep a 40rem floor so the card keeps
+     a strong horizontal presence on narrow laptops and phones, and clip to
+     100% of the overlay so the card never overflows its container when the
+     floor exceeds available space. */
+  width: min(100%, max(40rem, 50vw));
   padding: 1.65rem 2.25rem 1.85rem;
   border-radius: 14px;
   background:
-    radial-gradient(circle at 18% 8%, rgba(255, 255, 255, 0.4), transparent 55%),
-    linear-gradient(170deg, rgba(245, 230, 203, 0.78) 0%, rgba(233, 211, 174, 0.78) 100%);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+    radial-gradient(circle at 18% 8%, rgba(255, 255, 255, 0.28), transparent 55%),
+    linear-gradient(170deg, rgba(245, 230, 203, 0.5) 0%, rgba(233, 211, 174, 0.5) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: var(--scene-ink);
   transform: rotate(-0.5deg);
   box-shadow:
