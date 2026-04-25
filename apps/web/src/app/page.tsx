@@ -108,7 +108,7 @@ export default function Home() {
   }
 
   const publicView = view === "public";
-  const mainBackground = publicView ? colors.fleaCream : colors.backgroundLight;
+  const mainBackground = colors.fleaCream;
 
   const goHome = () => {
     setView("public");
@@ -266,9 +266,10 @@ function AdminHeader({ t, onHome }: AdminHeaderProps) {
         display: "grid",
         gridTemplateColumns: "1fr auto 1fr",
         alignItems: "center",
-        padding: "1rem 1.5rem",
-        borderBottom: `1px solid ${colors.borderTan}`,
-        background: "transparent",
+        padding: "0.85rem 1.5rem",
+        borderBottom: `1px solid ${colors.fleaSand}`,
+        background: colors.fleaCream,
+        boxShadow: "0 1px 6px rgba(91, 70, 54, 0.06)",
         position: "sticky",
         top: 0,
         zIndex: 10,
@@ -287,9 +288,11 @@ function AdminHeader({ t, onHome }: AdminHeaderProps) {
           display: "inline-flex",
           alignItems: "center",
           gap: "0.4rem",
-          color: colors.inkBrown,
-          fontFamily: fonts.heading,
-          fontSize: "1.25rem",
+          color: colors.fleaInk,
+          fontFamily: fonts.sans,
+          fontSize: "1rem",
+          letterSpacing: "0.04em",
+          textTransform: "uppercase",
           lineHeight: 1,
         }}
         aria-label={t("common.appName")}
@@ -301,6 +304,8 @@ function AdminHeader({ t, onHome }: AdminHeaderProps) {
             fontFamily: "inherit",
             color: "inherit",
             fontWeight: 700,
+            letterSpacing: "inherit",
+            textTransform: "inherit",
           }}
         >
           {t("common.appName")}

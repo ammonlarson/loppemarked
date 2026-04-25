@@ -39,7 +39,7 @@ export function AdminPage({ onBack }: AdminPageProps) {
 
   return (
     <div>
-      <div style={{ padding: "0.5rem 1rem" }}>
+      <div style={{ padding: "0.5rem 1.25rem" }}>
         <button
           type="button"
           onClick={onBack}
@@ -47,10 +47,13 @@ export function AdminPage({ onBack }: AdminPageProps) {
             background: "none",
             border: "none",
             cursor: "pointer",
-            fontSize: "0.9rem",
-            color: colors.warmBrown,
+            fontSize: "0.8rem",
+            color: colors.fleaPenInk,
             padding: "0.25rem 0",
-            fontFamily: fonts.body,
+            fontFamily: fonts.sans,
+            fontWeight: 500,
+            letterSpacing: "0.04em",
+            textTransform: "uppercase",
           }}
         >
           &larr; {t("admin.backToPublic")}
@@ -58,7 +61,7 @@ export function AdminPage({ onBack }: AdminPageProps) {
       </div>
 
       {authState === "checking" && (
-        <p style={{ textAlign: "center", color: colors.warmBrown, padding: "2rem" }}>
+        <p style={{ textAlign: "center", color: colors.fleaPenInk, padding: "2rem", fontFamily: fonts.sans }}>
           {t("common.loading")}
         </p>
       )}
