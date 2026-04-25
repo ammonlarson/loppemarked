@@ -177,7 +177,7 @@ describe("handleRemoveWaitlist", () => {
     expect(auditSpy).toHaveBeenCalledTimes(1);
   });
 
-  it("removes assigned entries too (no status restriction)", async () => {
+  it("throws 400 when entry is already assigned (preserves booking history)", async () => {
     const deleteSpy = vi.fn().mockResolvedValue(undefined);
     const mockDb = makeRemoveMockDb({
       entry: {
@@ -190,11 +190,15 @@ describe("handleRemoveWaitlist", () => {
       deleteSpy,
     });
 
-    const result = await handleRemoveWaitlist(
-      makeCtx({ db: mockDb, params: { id: "w2" } }),
-    );
-
-    expect(result.statusCode).toBe(204);
-    expect(deleteSpy).toHaveBeenCalledTimes(1);
+    try {
+      await handleRemoveWaitlist(
+        makeCtx({ db: mockDb, params: { id: "w2" } }),
+      );
+      expect.fail("should have thrown");
+    } catch (err) {
+      expect(err).toBeInstanceOf(AppError);
+      expect((err as AppError).statusCode).toBe(400);
+    }
+    expect(deleteSpy).not.toHaveBeenCalled();
   });
 });

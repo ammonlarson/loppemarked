@@ -61,6 +61,9 @@ export async function handleRemoveWaitlist(ctx: RequestContext): Promise<RouteRe
     if (!entry) {
       throw notFound("Waitlist entry not found");
     }
+    if (entry.status !== "waiting") {
+      throw badRequest("Waitlist entry is not in waiting status");
+    }
 
     await trx.deleteFrom("waitlist_entries").where("id", "=", entryId).execute();
 
