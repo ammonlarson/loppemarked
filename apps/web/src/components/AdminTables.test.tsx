@@ -165,7 +165,9 @@ describe("AdminTables", () => {
       fireEvent.click(screen.getByText("admin.tables.removeRegistration"));
     });
 
-    fireEvent.click(screen.getByText("admin.tables.releaseReserved"));
+    await act(async () => {
+      fireEvent.click(screen.getByText("admin.tables.releaseReserved"));
+    });
 
     await act(async () => {
       fireEvent.click(screen.getByText("common.confirm"));

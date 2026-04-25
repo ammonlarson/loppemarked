@@ -760,7 +760,7 @@ describe("handleMoveRegistration (happy path)", () => {
 
 describe("handleRemoveRegistration (happy path)", () => {
   it("removes registration and releases table as public (default)", async () => {
-    const { db, tableUpdates } = makeMockRemoveDb({
+    const { db, tableUpdates, auditInserts } = makeMockRemoveDb({
       reg: {
         id: "reg-1", table_id: 3, status: "active",
         name: "Alice", email: "a@b.com", language: "da", apartment_key: "else alfelts vej 130",
@@ -776,10 +776,19 @@ describe("handleRemoveRegistration (happy path)", () => {
     expect(body.tableReleased).toBe(true);
     expect(tableUpdates).toHaveLength(1);
     expect(tableUpdates[0]).toMatchObject({ state: "available", reserved_label: null });
+
+    const tableStateAudit = auditInserts.find(
+      (e) => e.action === "table_state_change" && e.entity_id === "3",
+    );
+    expect(tableStateAudit).toBeDefined();
+    expect(JSON.parse(tableStateAudit!.after as string)).toMatchObject({
+      state: "available",
+      reserved_label: null,
+    });
   });
 
   it("removes registration and holds table as reserved when makeTablePublic is false", async () => {
-    const { db, tableUpdates } = makeMockRemoveDb({
+    const { db, tableUpdates, auditInserts } = makeMockRemoveDb({
       reg: {
         id: "reg-1", table_id: 3, status: "active",
         name: "Alice", email: "a@b.com", language: "da", apartment_key: "else alfelts vej 130",
@@ -794,6 +803,15 @@ describe("handleRemoveRegistration (happy path)", () => {
     expect(body.tableReleased).toBe(false);
     expect(tableUpdates).toHaveLength(1);
     expect(tableUpdates[0]).toMatchObject({ state: "reserved", reserved_label: RESERVED_LABEL_DEFAULT });
+
+    const tableStateAudit = auditInserts.find(
+      (e) => e.action === "table_state_change" && e.entity_id === "3",
+    );
+    expect(tableStateAudit).toBeDefined();
+    expect(JSON.parse(tableStateAudit!.after as string)).toMatchObject({
+      state: "reserved",
+      reserved_label: RESERVED_LABEL_DEFAULT,
+    });
   });
 
   it("throws 404 when registration not found", async () => {
@@ -1147,8 +1165,13 @@ function makeMockRemoveDb(opts: {
     id: string; table_id: number; status: string;
     name: string; email: string; language: string; apartment_key: string;
   };
-}): { db: Kysely<Database>; tableUpdates: Array<Record<string, unknown>> } {
+}): {
+  db: Kysely<Database>;
+  tableUpdates: Array<Record<string, unknown>>;
+  auditInserts: Array<Record<string, unknown>>;
+} {
   const tableUpdates: Array<Record<string, unknown>> = [];
+  const auditInserts: Array<Record<string, unknown>> = [];
 
   const makeUpdateTable = () => vi.fn().mockImplementation((tableName: string) => ({
     set: vi.fn().mockImplementation((values: Record<string, unknown>) => {
@@ -1159,6 +1182,20 @@ function makeMockRemoveDb(opts: {
         where: vi.fn().mockReturnValue({
           execute: vi.fn().mockResolvedValue(undefined),
         }),
+      };
+    }),
+  }));
+
+  const makeInsertInto = () => vi.fn().mockImplementation((tableName: string) => ({
+    values: vi.fn().mockImplementation((values: Record<string, unknown>) => {
+      if (tableName === "audit_events") {
+        auditInserts.push(values);
+      }
+      return {
+        returning: vi.fn().mockReturnValue({
+          execute: vi.fn().mockResolvedValue([{ id: "email-mock-id" }]),
+        }),
+        execute: vi.fn().mockResolvedValue(undefined),
       };
     }),
   }));
@@ -1179,11 +1216,7 @@ function makeMockRemoveDb(opts: {
       return {};
     }),
     updateTable: makeUpdateTable(),
-    insertInto: vi.fn().mockImplementation(() => ({
-      values: vi.fn().mockReturnValue({
-        execute: vi.fn().mockResolvedValue(undefined),
-      }),
-    })),
+    insertInto: makeInsertInto(),
   };
 
   const db = {
@@ -1192,18 +1225,11 @@ function makeMockRemoveDb(opts: {
         async (fn: (trx: unknown) => Promise<unknown>) => fn(mockTrx),
       ),
     }),
-    insertInto: vi.fn().mockImplementation(() => ({
-      values: vi.fn().mockReturnValue({
-        returning: vi.fn().mockReturnValue({
-          execute: vi.fn().mockResolvedValue([{ id: "email-mock-id" }]),
-        }),
-        execute: vi.fn().mockResolvedValue(undefined),
-      }),
-    })),
+    insertInto: makeInsertInto(),
     updateTable: makeUpdateTable(),
   } as unknown as Kysely<Database>;
 
-  return { db, tableUpdates };
+  return { db, tableUpdates, auditInserts };
 }
 
 function makeMockAssignDb(opts: {
