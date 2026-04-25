@@ -36,6 +36,12 @@ describe("WaitlistBanner", () => {
     expect(screen.getByText("waitlist.positionLabel: #3")).toBeDefined();
   });
 
+  it("renders position alongside the email follow-up on the happy path", () => {
+    render(<WaitlistBanner position={3} />);
+    expect(screen.getByText("waitlist.positionLabel: #3")).toBeDefined();
+    expect(screen.getByText("waitlist.emailFollowUp")).toBeDefined();
+  });
+
   it("does not show position when null", () => {
     render(<WaitlistBanner position={null} />);
     expect(screen.queryByText(/positionLabel/)).toBeNull();
