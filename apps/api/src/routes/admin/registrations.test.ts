@@ -3,6 +3,7 @@ import type { Kysely } from "kysely";
 import type { Database } from "../../db/types.js";
 import type { RequestContext } from "../../router.js";
 import { AppError } from "../../lib/errors.js";
+import { RESERVED_LABEL_DEFAULT } from "@loppemarked/shared";
 import {
   handleAssignWaitlist,
   handleCreateRegistration,
@@ -759,7 +760,7 @@ describe("handleMoveRegistration (happy path)", () => {
 
 describe("handleRemoveRegistration (happy path)", () => {
   it("removes registration and releases table as public (default)", async () => {
-    const mockDb = makeMockRemoveDb({
+    const { db, tableUpdates, auditInserts } = makeMockRemoveDb({
       reg: {
         id: "reg-1", table_id: 3, status: "active",
         name: "Alice", email: "a@b.com", language: "da", apartment_key: "else alfelts vej 130",
@@ -767,16 +768,27 @@ describe("handleRemoveRegistration (happy path)", () => {
     });
 
     const result = await handleRemoveRegistration(
-      makeCtx({ db: mockDb, body: { registrationId: "reg-1" } }),
+      makeCtx({ db, body: { registrationId: "reg-1" } }),
     );
     expect(result.statusCode).toBe(200);
     const body = result.body as Record<string, unknown>;
     expect(body.registrationId).toBe("reg-1");
     expect(body.tableReleased).toBe(true);
+    expect(tableUpdates).toHaveLength(1);
+    expect(tableUpdates[0]).toMatchObject({ state: "available", reserved_label: null });
+
+    const tableStateAudit = auditInserts.find(
+      (e) => e.action === "table_state_change" && e.entity_id === "3",
+    );
+    expect(tableStateAudit).toBeDefined();
+    expect(JSON.parse(tableStateAudit!.after as string)).toMatchObject({
+      state: "available",
+      reserved_label: null,
+    });
   });
 
   it("removes registration and holds table as reserved when makeTablePublic is false", async () => {
-    const mockDb = makeMockRemoveDb({
+    const { db, tableUpdates, auditInserts } = makeMockRemoveDb({
       reg: {
         id: "reg-1", table_id: 3, status: "active",
         name: "Alice", email: "a@b.com", language: "da", apartment_key: "else alfelts vej 130",
@@ -784,19 +796,30 @@ describe("handleRemoveRegistration (happy path)", () => {
     });
 
     const result = await handleRemoveRegistration(
-      makeCtx({ db: mockDb, body: { registrationId: "reg-1", makeTablePublic: false } }),
+      makeCtx({ db, body: { registrationId: "reg-1", makeTablePublic: false } }),
     );
     expect(result.statusCode).toBe(200);
     const body = result.body as Record<string, unknown>;
     expect(body.tableReleased).toBe(false);
+    expect(tableUpdates).toHaveLength(1);
+    expect(tableUpdates[0]).toMatchObject({ state: "reserved", reserved_label: RESERVED_LABEL_DEFAULT });
+
+    const tableStateAudit = auditInserts.find(
+      (e) => e.action === "table_state_change" && e.entity_id === "3",
+    );
+    expect(tableStateAudit).toBeDefined();
+    expect(JSON.parse(tableStateAudit!.after as string)).toMatchObject({
+      state: "reserved",
+      reserved_label: RESERVED_LABEL_DEFAULT,
+    });
   });
 
   it("throws 404 when registration not found", async () => {
-    const mockDb = makeMockRemoveDb({ reg: undefined });
+    const { db } = makeMockRemoveDb({ reg: undefined });
 
     try {
       await handleRemoveRegistration(
-        makeCtx({ db: mockDb, body: { registrationId: "nonexistent" } }),
+        makeCtx({ db, body: { registrationId: "nonexistent" } }),
       );
       expect.fail("should have thrown");
     } catch (err) {
@@ -806,7 +829,7 @@ describe("handleRemoveRegistration (happy path)", () => {
   });
 
   it("throws 400 when registration is not active", async () => {
-    const mockDb = makeMockRemoveDb({
+    const { db } = makeMockRemoveDb({
       reg: {
         id: "reg-1", table_id: 3, status: "removed",
         name: "A", email: "a@b.com", language: "da", apartment_key: "key",
@@ -815,7 +838,7 @@ describe("handleRemoveRegistration (happy path)", () => {
 
     try {
       await handleRemoveRegistration(
-        makeCtx({ db: mockDb, body: { registrationId: "reg-1" } }),
+        makeCtx({ db, body: { registrationId: "reg-1" } }),
       );
       expect.fail("should have thrown");
     } catch (err) {
@@ -1142,7 +1165,41 @@ function makeMockRemoveDb(opts: {
     id: string; table_id: number; status: string;
     name: string; email: string; language: string; apartment_key: string;
   };
-}): Kysely<Database> {
+}): {
+  db: Kysely<Database>;
+  tableUpdates: Array<Record<string, unknown>>;
+  auditInserts: Array<Record<string, unknown>>;
+} {
+  const tableUpdates: Array<Record<string, unknown>> = [];
+  const auditInserts: Array<Record<string, unknown>> = [];
+
+  const makeUpdateTable = () => vi.fn().mockImplementation((tableName: string) => ({
+    set: vi.fn().mockImplementation((values: Record<string, unknown>) => {
+      if (tableName === "tables") {
+        tableUpdates.push(values);
+      }
+      return {
+        where: vi.fn().mockReturnValue({
+          execute: vi.fn().mockResolvedValue(undefined),
+        }),
+      };
+    }),
+  }));
+
+  const makeInsertInto = () => vi.fn().mockImplementation((tableName: string) => ({
+    values: vi.fn().mockImplementation((values: Record<string, unknown>) => {
+      if (tableName === "audit_events") {
+        auditInserts.push(values);
+      }
+      return {
+        returning: vi.fn().mockReturnValue({
+          execute: vi.fn().mockResolvedValue([{ id: "email-mock-id" }]),
+        }),
+        execute: vi.fn().mockResolvedValue(undefined),
+      };
+    }),
+  }));
+
   const mockTrx = {
     selectFrom: vi.fn().mockImplementation((table: string) => {
       if (table === "registrations") {
@@ -1158,42 +1215,21 @@ function makeMockRemoveDb(opts: {
       }
       return {};
     }),
-    updateTable: vi.fn().mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          execute: vi.fn().mockResolvedValue(undefined),
-        }),
-      }),
-    }),
-    insertInto: vi.fn().mockImplementation(() => ({
-      values: vi.fn().mockReturnValue({
-        execute: vi.fn().mockResolvedValue(undefined),
-      }),
-    })),
+    updateTable: makeUpdateTable(),
+    insertInto: makeInsertInto(),
   };
 
-  return {
+  const db = {
     transaction: vi.fn().mockReturnValue({
       execute: vi.fn().mockImplementation(
         async (fn: (trx: unknown) => Promise<unknown>) => fn(mockTrx),
       ),
     }),
-    insertInto: vi.fn().mockImplementation(() => ({
-      values: vi.fn().mockReturnValue({
-        returning: vi.fn().mockReturnValue({
-          execute: vi.fn().mockResolvedValue([{ id: "email-mock-id" }]),
-        }),
-        execute: vi.fn().mockResolvedValue(undefined),
-      }),
-    })),
-    updateTable: vi.fn().mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          execute: vi.fn().mockResolvedValue(undefined),
-        }),
-      }),
-    }),
+    insertInto: makeInsertInto(),
+    updateTable: makeUpdateTable(),
   } as unknown as Kysely<Database>;
+
+  return { db, tableUpdates, auditInserts };
 }
 
 function makeMockAssignDb(opts: {
