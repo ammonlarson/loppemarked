@@ -120,13 +120,16 @@ interface DbStubOptions {
 
 function makeStubDb(opts: DbStubOptions): Kysely<Database> {
   function buildSelectChain(): unknown {
+    const downstreamOrder: { execute: ReturnType<typeof vi.fn>; orderBy?: () => unknown } = {
+      execute: vi.fn().mockResolvedValue(opts.downstream),
+    };
+    downstreamOrder.orderBy = vi.fn().mockReturnValue(downstreamOrder);
+
     return {
       select: vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnValue({
-            orderBy: vi.fn().mockReturnValue({
-              execute: vi.fn().mockResolvedValue(opts.downstream),
-            }),
+            orderBy: vi.fn().mockReturnValue(downstreamOrder),
             executeTakeFirstOrThrow: vi
               .fn()
               .mockResolvedValue({ count: opts.aboveCount }),
@@ -296,5 +299,66 @@ describe("notifyDownstreamWaitlist", () => {
     const insertCalls = vi.mocked(db.insertInto).mock.calls;
     const auditCalls = insertCalls.filter((c) => c[0] === "audit_events");
     expect(auditCalls.length).toBeGreaterThan(0);
+  });
+
+  it("queries downstream entries with an inclusive created_at bound and a deterministic id tiebreaker", async () => {
+    const orderByMock = vi.fn().mockReturnThis();
+    const whereMock = vi.fn().mockReturnThis();
+    const executeMock = vi.fn().mockResolvedValue([]);
+    const queryBuilder = {
+      select: vi.fn().mockReturnThis(),
+      where: whereMock,
+      orderBy: orderByMock,
+      execute: executeMock,
+      executeTakeFirstOrThrow: vi.fn().mockResolvedValue({ count: 0 }),
+    };
+
+    const db = {
+      selectFrom: vi.fn().mockReturnValue(queryBuilder),
+      fn: { countAll: () => ({ as: () => "count" }) },
+      insertInto: vi.fn().mockImplementation(() => ({
+        values: vi.fn().mockReturnValue({
+          execute: vi.fn().mockResolvedValue(undefined),
+        }),
+      })),
+    } as unknown as Kysely<Database>;
+
+    await notifyDownstreamWaitlist(
+      db,
+      "admin-1",
+      new Date("2026-01-01T00:00:00Z"),
+      { triggerAction: "waitlist_remove", entityId: "wl-1" },
+    );
+
+    const downstreamWhereCalls = whereMock.mock.calls.filter(
+      (call) => call[0] === "created_at",
+    );
+    expect(downstreamWhereCalls).toContainEqual(
+      expect.arrayContaining(["created_at", ">=", expect.any(Date)]),
+    );
+
+    expect(orderByMock).toHaveBeenCalledWith("created_at", "asc");
+    expect(orderByMock).toHaveBeenCalledWith("id", "asc");
+  });
+
+  it("returns zero-result counts and does not throw when the initial query fails", async () => {
+    const { queueAndSendEmail } = await import("./email-service.js");
+    const db = {
+      selectFrom: vi.fn().mockImplementation(() => {
+        throw new Error("database unavailable");
+      }),
+      fn: { countAll: () => ({ as: () => "count" }) },
+      insertInto: vi.fn(),
+    } as unknown as Kysely<Database>;
+
+    const result = await notifyDownstreamWaitlist(
+      db,
+      "admin-1",
+      new Date("2026-01-01T00:00:00Z"),
+      { triggerAction: "waitlist_remove", entityId: "wl-1" },
+    );
+
+    expect(result).toEqual({ attempted: 0, succeeded: 0, failed: 0 });
+    expect(queueAndSendEmail).not.toHaveBeenCalled();
   });
 });

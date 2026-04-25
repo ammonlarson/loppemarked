@@ -120,13 +120,20 @@ export async function notifyDownstreamWaitlist(
   }>;
   let aboveCount: number;
 
+  // The helper runs OUTSIDE the assign/remove transaction, so positions are
+  // best-effort: a concurrent admin operation could shift the queue between
+  // the count query and the email send. The `>=` lower bound on downstream
+  // entries handles peers that shared the removed entry's exact `created_at`
+  // (the removed/assigned entry itself is excluded by `status = "waiting"`),
+  // and the `id` secondary ordering keeps positions deterministic for ties.
   try {
     downstream = await db
       .selectFrom("waitlist_entries")
       .select(["id", "name", "email", "language"])
       .where("status", "=", "waiting")
-      .where("created_at", ">", removedEntryCreatedAt)
+      .where("created_at", ">=", removedEntryCreatedAt)
       .orderBy("created_at", "asc")
+      .orderBy("id", "asc")
       .execute();
 
     if (downstream.length === 0) {

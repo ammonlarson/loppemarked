@@ -288,4 +288,67 @@ describe("handleRemoveWaitlist — notifyDownstream", () => {
       entityId: "w1",
     });
   });
+
+  it("records the admin's notify_downstream choice in the waitlist_remove audit event", async () => {
+    const auditValuesSpy = vi.fn().mockReturnValue({
+      execute: vi.fn().mockResolvedValue(undefined),
+    });
+
+    const mockTrx = {
+      selectFrom: vi.fn().mockImplementation((table: string) => {
+        if (table === "waitlist_entries") {
+          return {
+            select: vi.fn().mockReturnValue({
+              where: vi.fn().mockReturnValue({
+                forUpdate: vi.fn().mockReturnValue({
+                  executeTakeFirst: vi.fn().mockResolvedValue({
+                    id: "w1",
+                    name: "Alice",
+                    email: "alice@example.com",
+                    apartment_key: "else alfelts vej 130",
+                    status: "waiting",
+                    created_at: new Date("2026-02-15T10:00:00Z"),
+                  }),
+                }),
+              }),
+            }),
+          };
+        }
+        return {};
+      }),
+      deleteFrom: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          execute: vi.fn().mockResolvedValue(undefined),
+        }),
+      }),
+      insertInto: vi.fn().mockImplementation((table: string) => {
+        if (table === "audit_events") {
+          return { values: auditValuesSpy };
+        }
+        return {};
+      }),
+    };
+
+    const mockDb = {
+      transaction: vi.fn().mockReturnValue({
+        execute: vi.fn().mockImplementation(
+          async (fn: (trx: unknown) => Promise<unknown>) => fn(mockTrx),
+        ),
+      }),
+    } as unknown as Kysely<Database>;
+
+    await handleRemoveWaitlist(
+      makeCtx({
+        db: mockDb,
+        params: { id: "w1" },
+        body: { notifyDownstream: true },
+      }),
+    );
+
+    const auditPayload = auditValuesSpy.mock.calls[0][0] as Record<string, unknown>;
+    expect(auditPayload.action).toBe("waitlist_remove");
+    expect(JSON.parse(String(auditPayload.after))).toMatchObject({
+      notify_downstream: true,
+    });
+  });
 });
