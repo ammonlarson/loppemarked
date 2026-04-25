@@ -14,14 +14,21 @@ vi.mock("@/i18n/LanguageProvider", () => ({
 const OPENING = "2026-04-01T10:00:00.000Z";
 
 describe("PreOpenPage", () => {
+  let originalLocation: Location;
+
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-03-30T09:59:50.000Z"));
+    originalLocation = window.location;
   });
 
   afterEach(() => {
     vi.useRealTimers();
     cleanup();
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: originalLocation,
+    });
   });
 
   it("renders the share-your-treasures phrase, pre-open title, and eligibility copy", () => {
