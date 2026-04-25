@@ -52,7 +52,7 @@ graph TB
 
     subgraph "Shared Components"
         TM[TableMap]
-        TSL[TableStateLegend]
+        TC[TableControls]
         LS[LanguageSelector]
     end
 
@@ -66,7 +66,7 @@ graph TB
     PAGE -->|open, no selection| LAND
     PAGE -->|enter map| MAP
     MAP --> TM
-    MAP --> TSL
+    MAP --> TC
     LP --> TR
 ```
 
@@ -449,6 +449,8 @@ graph LR
 
 - **CI** runs on every PR: lint, test, build for all workspaces; `terraform fmt` + `terraform validate`.
 - **Terraform** runs when `infra/terraform/**` changes: format check + plan on PRs, apply on merge to main. The `Format Check` job enforces `terraform fmt -check -recursive` and blocks merge when formatting is invalid.
+- **Deploy API** (`deploy.yml`) runs on push to `main` when `apps/api/**` or `packages/shared/**` change: builds the Lambda bundle, deploys to staging with a health smoke test, then promotes to production.
+- **Deploy Web** (`deploy-web.yml`) runs on push to `main` when `apps/web/**` or `packages/shared/**` change: triggers an Amplify production release job and waits for build completion.
 - **Drift detection** runs daily via `drift-detection.yml`; creates a GitHub issue if drift is found.
 - **Session cleanup** runs hourly via an EventBridge scheduled rule that invokes the API Lambda. The handler detects the scheduled event and deletes expired sessions (8-hour TTL) from the database.
 - **Production apply** runs automatically after staging succeeds.
