@@ -134,9 +134,9 @@ graph TB
     end
 
     subgraph "Routes"
-        PUB[public.ts<br/>Status / Hall / Tables / Register / Waitlist]
-        AUTH[admin/auth.ts<br/>Login / Change Password]
-        ADMIN[admin/*.ts<br/>Registrations / Waitlist / Settings / Admins / Audit]
+        PUB[public.ts<br/>Status / Hall / Tables / Register / Waitlist / Validate / Cancel]
+        AUTH[admin/auth.ts<br/>Login / Logout / Me / Change Password]
+        ADMIN[admin/*.ts<br/>Admins / Tables / Registrations / Waitlist / Settings / Audit / Messaging / Staging]
         HEALTH[health.ts<br/>Health Check]
     end
 
@@ -178,25 +178,48 @@ graph TB
 
 ### API Surface
 
-| Method | Path                          | Auth   | Description                        |
-|--------|-------------------------------|--------|------------------------------------|
-| GET    | `/public/status`              | None   | Registration open/closed status    |
-| GET    | `/public/hall`                | None   | Aggregate hall availability counts |
-| GET    | `/public/tables`              | None   | Public-safe table states           |
-| POST   | `/public/register`            | None   | Register for a flea-market table   |
-| POST   | `/public/waitlist`            | None   | Join waitlist                      |
-| POST   | `/admin/auth/login`           | None   | Admin login                        |
-| POST   | `/admin/auth/change-password` | Admin  | Change own password                |
-| GET    | `/admin/registrations`        | Admin  | List all registrations             |
-| POST   | `/admin/registrations`        | Admin  | Create override reservation        |
-| POST   | `/admin/registrations/move`   | Admin  | Move registration between tables   |
-| POST   | `/admin/registrations/remove` | Admin  | Remove registration                |
-| POST   | `/admin/waitlist/assign`      | Admin  | Assign waitlist entry to table     |
-| PATCH  | `/admin/settings/opening-time`| Admin  | Update opening datetime            |
-| POST   | `/admin/admins`               | Admin  | Create admin account               |
-| DELETE | `/admin/admins/:id`           | Admin  | Delete admin account               |
-| GET    | `/admin/audit`                | Admin  | Retrieve audit timeline            |
-| GET    | `/health`                     | None   | Health check                       |
+| Method | Path                                          | Auth   | Description                                       |
+|--------|-----------------------------------------------|--------|---------------------------------------------------|
+| GET    | `/health`                                     | None   | Health check                                      |
+| GET    | `/public/status`                              | None   | Registration open/closed status                   |
+| GET    | `/public/hall`                                | None   | Aggregate hall availability counts                |
+| GET    | `/public/tables`                              | None   | Public-safe table states                          |
+| POST   | `/public/validate-address`                    | None   | Address eligibility check                         |
+| POST   | `/public/validate-registration`               | None   | Full registration input validation                |
+| POST   | `/public/register`                            | None   | Register for a flea-market table                  |
+| POST   | `/public/waitlist`                            | None   | Join waitlist                                     |
+| GET    | `/public/waitlist/position/:apartmentKey`     | None   | Waitlist position lookup for an apartment         |
+| GET    | `/public/cancel/:token`                       | None   | Self-cancel magic-link details                    |
+| POST   | `/public/cancel/:token`                       | None   | Confirm self-cancel via magic link                |
+| POST   | `/admin/auth/login`                           | None   | Admin login                                       |
+| GET    | `/admin/auth/me`                              | Admin  | Current admin session                             |
+| POST   | `/admin/auth/logout`                          | Admin  | Log out current admin                             |
+| POST   | `/admin/auth/change-password`                 | Admin  | Change own password                               |
+| GET    | `/admin/admins`                               | Admin  | List admin accounts                               |
+| POST   | `/admin/admins`                               | Admin  | Create admin account                              |
+| DELETE | `/admin/admins/:id`                           | Admin  | Delete admin account                              |
+| GET    | `/admin/tables`                               | Admin  | List tables with admin metadata                   |
+| POST   | `/admin/tables/reserve`                       | Admin  | Mark a table reserved                             |
+| POST   | `/admin/tables/release`                       | Admin  | Release a reserved table                          |
+| GET    | `/admin/registrations`                        | Admin  | List all registrations                            |
+| POST   | `/admin/registrations`                        | Admin  | Create override reservation                       |
+| POST   | `/admin/registrations/move`                   | Admin  | Move registration between tables                  |
+| POST   | `/admin/registrations/remove`                 | Admin  | Remove registration                               |
+| GET    | `/admin/waitlist`                             | Admin  | List waitlist entries                             |
+| POST   | `/admin/waitlist/assign`                      | Admin  | Assign waitlist entry to a table                  |
+| DELETE | `/admin/waitlist/:id`                         | Admin  | Remove a waitlist entry                           |
+| POST   | `/admin/notifications/preview`                | Admin  | Preview a per-action admin notification email     |
+| POST   | `/admin/messaging/template`                   | Admin  | Fetch bulk-email template                         |
+| POST   | `/admin/messaging/preview`                    | Admin  | Preview bulk email                                |
+| POST   | `/admin/messaging/recipients`                 | Admin  | List recipients for a bulk send                   |
+| POST   | `/admin/messaging/send`                       | Admin  | Send bulk email                                   |
+| POST   | `/admin/audit-events`                         | Admin  | Retrieve filtered audit timeline                  |
+| GET    | `/admin/settings/opening-time`                | Admin  | Get current opening datetime                      |
+| PATCH  | `/admin/settings/opening-time`                | Admin  | Update opening datetime                           |
+| GET    | `/admin/settings/notification-preferences`    | Admin  | Get notification opt-in flags for current admin   |
+| PATCH  | `/admin/settings/notification-preferences`    | Admin  | Update notification opt-in flags                  |
+| POST   | `/admin/staging/fill-tables`                  | Admin  | (Staging only) Fill all tables with test bookings |
+| POST   | `/admin/staging/clear-registrations`          | Admin  | (Staging only) Clear all registrations            |
 
 ## Database Architecture
 
