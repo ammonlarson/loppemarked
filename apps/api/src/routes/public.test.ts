@@ -595,6 +595,11 @@ describe("handleJoinWaitlist (happy path)", () => {
     greenhousePreference: "any",
   };
 
+  beforeEach(() => {
+    const mockSes = { send: vi.fn().mockResolvedValue({}) };
+    setSesClient(mockSes as never);
+  });
+
   it("creates a new waitlist entry when no boxes available and apartment not on waitlist", async () => {
     const mockDb = makeMockDbForWaitlist({
       availableCount: 0,
@@ -610,6 +615,73 @@ describe("handleJoinWaitlist (happy path)", () => {
     expect(body.alreadyOnWaitlist).toBe(false);
     expect(body.waitlistEntryId).toBe("wl-1");
     expect(body.position).toBe(1);
+  });
+
+  it("queues a confirmation email after a new waitlist signup", async () => {
+    const mockDb = makeMockDbForWaitlist({
+      availableCount: 0,
+      existingEntry: undefined,
+      newEntryId: "wl-1",
+      positionEntryCreatedAt: "2026-03-01T10:00:00Z",
+      positionCount: 2,
+    });
+
+    await handleJoinWaitlist(makeCtx({ db: mockDb, body: validWaitlistBody }));
+
+    const insertCalls = (mockDb.insertInto as ReturnType<typeof vi.fn>).mock.calls;
+    const emailCalls = insertCalls.filter(
+      (call: string[]) => call[0] === "emails",
+    );
+    expect(emailCalls.length).toBe(1);
+  });
+
+  it("does not queue a confirmation email when the apartment is already on the waitlist", async () => {
+    const existingCreatedAt = "2026-03-01T08:00:00Z";
+    const mockDb = makeMockDbForWaitlist({
+      availableCount: 0,
+      existingEntry: { id: "wl-existing", created_at: existingCreatedAt },
+      positionEntryCreatedAt: existingCreatedAt,
+      positionCount: 3,
+    });
+
+    await handleJoinWaitlist(makeCtx({ db: mockDb, body: validWaitlistBody }));
+
+    const insertCalls = (mockDb.insertInto as ReturnType<typeof vi.fn>).mock.calls;
+    const emailCalls = insertCalls.filter(
+      (call: string[]) => call[0] === "emails",
+    );
+    expect(emailCalls.length).toBe(0);
+  });
+
+  it("does not queue a confirmation email when boxes are still available", async () => {
+    const mockDb = makeMockDbForWaitlist({ availableCount: 5 });
+
+    await expect(
+      handleJoinWaitlist(makeCtx({ db: mockDb, body: validWaitlistBody })),
+    ).rejects.toMatchObject({ code: "BOXES_AVAILABLE" });
+
+    const insertCalls = (mockDb.insertInto as ReturnType<typeof vi.fn>).mock.calls;
+    const emailCalls = insertCalls.filter(
+      (call: string[]) => call[0] === "emails",
+    );
+    expect(emailCalls.length).toBe(0);
+  });
+
+  it("does not queue a confirmation email when the apartment already has a registration", async () => {
+    const mockDb = makeMockDbForWaitlist({
+      availableCount: 0,
+      existingRegistrationId: "reg-existing",
+    });
+
+    await expect(
+      handleJoinWaitlist(makeCtx({ db: mockDb, body: validWaitlistBody })),
+    ).rejects.toMatchObject({ code: "APARTMENT_HAS_REGISTRATION" });
+
+    const insertCalls = (mockDb.insertInto as ReturnType<typeof vi.fn>).mock.calls;
+    const emailCalls = insertCalls.filter(
+      (call: string[]) => call[0] === "emails",
+    );
+    expect(emailCalls.length).toBe(0);
   });
 
   it("returns existing entry when apartment is already on waitlist, preserving original timestamp", async () => {
@@ -910,6 +982,11 @@ describe("role visibility — public endpoints do not expose reserved status or 
 });
 
 describe("handleJoinWaitlist — FIFO ordering", () => {
+  beforeEach(() => {
+    const mockSes = { send: vi.fn().mockResolvedValue({}) };
+    setSesClient(mockSes as never);
+  });
+
   it("returns existing waitlist position when apartment already on waitlist (preserves original timestamp)", async () => {
     const existingEntry = {
       id: "wl-1",
@@ -1082,6 +1159,29 @@ describe("handleJoinWaitlist — FIFO ordering", () => {
             })),
           };
           return fn(trx);
+        }),
+      }),
+      insertInto: vi.fn().mockImplementation((table: string) => {
+        if (table === "emails") {
+          return {
+            values: vi.fn().mockReturnValue({
+              returning: vi.fn().mockReturnValue({
+                execute: vi.fn().mockResolvedValue([{ id: "email-fifo" }]),
+              }),
+            }),
+          };
+        }
+        return {
+          values: vi.fn().mockReturnValue({
+            execute: vi.fn().mockResolvedValue(undefined),
+          }),
+        };
+      }),
+      updateTable: vi.fn().mockReturnValue({
+        set: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            execute: vi.fn().mockResolvedValue(undefined),
+          }),
         }),
       }),
     } as unknown as Kysely<Database>;
@@ -1419,7 +1519,23 @@ function makeMockDbForWaitlist(opts: MockWaitlistOpts): Kysely<Database> {
           }),
         };
       }
+      if (table === "emails") {
+        return {
+          values: vi.fn().mockReturnValue({
+            returning: vi.fn().mockReturnValue({
+              execute: vi.fn().mockResolvedValue([{ id: "email-wl-1" }]),
+            }),
+          }),
+        };
+      }
       return {};
+    }),
+    updateTable: vi.fn().mockReturnValue({
+      set: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          execute: vi.fn().mockResolvedValue(undefined),
+        }),
+      }),
     }),
   } as unknown as Kysely<Database>;
 }
