@@ -187,7 +187,7 @@ describe("buildConfirmationEmail", () => {
   it("uses correct from and replyTo addresses", () => {
     const result = buildConfirmationEmail(baseData);
     expect(result.from).toBe("loppemarked@un17hub.com");
-    expect(result.replyTo).toBe("elise7284@gmail.com");
+    expect(result.replyTo).toBe("ammonl@hotmail.com");
   });
 
   it("does not include switch note when no switch occurred", () => {

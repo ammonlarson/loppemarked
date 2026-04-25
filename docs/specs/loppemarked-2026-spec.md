@@ -204,7 +204,7 @@ Søen:
 - For add/move/remove, email toggle defaults to ON.
 - Admin can edit default message before sending.
 - Emails sent from `loppemarked@un17hub.com`.
-- Reply-To set to `elise7284@gmail.com`.
+- Reply-To set to `ammonl@hotmail.com`.
 
 ### 6.5 Opening Window Management
 - Admin UI allows updating opening datetime.
@@ -219,7 +219,7 @@ Søen:
 
 ### 7.1 Sender Setup
 - From: `loppemarked@un17hub.com`
-- Reply-To: `elise7284@gmail.com`
+- Reply-To: `ammonl@hotmail.com`
 - Provider: AWS SES
 
 ### 7.2 Language

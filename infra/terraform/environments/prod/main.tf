@@ -56,7 +56,7 @@ module "loppemarked_stack" {
   lambda_reserved_concurrency = -1
 
   ses_sender_domain  = "un17hub.com"
-  ses_reply_to_email = "elise7284@gmail.com"
+  ses_reply_to_email = "ammonl@hotmail.com"
 
   alarm_email = "ammonl@hotmail.com"
 
