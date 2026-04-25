@@ -37,7 +37,8 @@ interface PreOpenPageProps {
   /**
    * Offset in milliseconds to add to `Date.now()` so countdown math runs
    * against the server clock instead of the (potentially drifted) client
-   * clock. Defaults to 0 when no server time is available yet.
+   * clock. Negative when the client clock is running ahead of the server.
+   * Defaults to 0 when no server time is available yet.
    */
   serverTimeOffsetMs?: number;
 }
