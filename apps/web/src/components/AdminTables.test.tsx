@@ -120,6 +120,61 @@ describe("AdminTables", () => {
     expect(screen.getByText(/admin.tables.confirmRemoveRegistration/)).toBeDefined();
     expect(screen.getByText(/admin.tables.occupiedBy/)).toBeDefined();
     expect(screen.getByTestId("notification-composer")).toBeDefined();
+    expect(screen.getByText("admin.tables.releasePublic")).toBeDefined();
+    expect(screen.getByText("admin.tables.releaseReserved")).toBeDefined();
+  });
+
+  it("submits remove with makeTablePublic=true by default", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => mockTables })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ registrationId: "r1", tableReleased: true }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockTables });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await act(async () => {
+      render(<AdminTables />);
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("admin.tables.removeRegistration"));
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("common.confirm"));
+    });
+
+    const removeCall = fetchMock.mock.calls[1];
+    expect(removeCall[0]).toBe("/admin/registrations/remove");
+    const removeBody = JSON.parse(removeCall[1].body);
+    expect(removeBody.registrationId).toBe("r1");
+    expect(removeBody.makeTablePublic).toBe(true);
+  });
+
+  it("submits remove with makeTablePublic=false when 'Keep as reserved' is selected", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => mockTables })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ registrationId: "r1", tableReleased: false }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockTables });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await act(async () => {
+      render(<AdminTables />);
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("admin.tables.removeRegistration"));
+    });
+
+    fireEvent.click(screen.getByText("admin.tables.releaseReserved"));
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("common.confirm"));
+    });
+
+    const removeCall = fetchMock.mock.calls[1];
+    expect(removeCall[0]).toBe("/admin/registrations/remove");
+    const removeBody = JSON.parse(removeCall[1].body);
+    expect(removeBody.makeTablePublic).toBe(false);
   });
 
   it("shows add registration dialog for available tables", async () => {
