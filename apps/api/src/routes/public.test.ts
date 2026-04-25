@@ -1468,6 +1468,10 @@ describe("handleWaitlistPosition — returns FIFO position", () => {
       created_at: "2026-03-01T10:00:00Z",
     };
 
+    // Captures arg pairs from each chained .where() call on the count query
+    // so the test can assert the SQL operator, not just the wire-format shape.
+    const countWhereArgs: Array<[string, string, unknown]> = [];
+
     let selectCallCount = 0;
     const mockDb = {
       selectFrom: vi.fn().mockImplementation((table: string) => {
@@ -1497,10 +1501,16 @@ describe("handleWaitlistPosition — returns FIFO position", () => {
           }
           return {
             select: vi.fn().mockReturnValue({
-              where: vi.fn().mockReturnValue({
-                where: vi.fn().mockReturnValue({
-                  executeTakeFirstOrThrow: vi.fn().mockResolvedValue({ ahead: 0 }),
-                }),
+              where: vi.fn().mockImplementation((col: string, op: string, val: unknown) => {
+                countWhereArgs.push([col, op, val]);
+                return {
+                  where: vi.fn().mockImplementation((col2: string, op2: string, val2: unknown) => {
+                    countWhereArgs.push([col2, op2, val2]);
+                    return {
+                      executeTakeFirstOrThrow: vi.fn().mockResolvedValue({ ahead: 0 }),
+                    };
+                  }),
+                };
               }),
             }),
           };
@@ -1523,6 +1533,12 @@ describe("handleWaitlistPosition — returns FIFO position", () => {
     const body = res.body as Record<string, unknown>;
     expect(body.onWaitlist).toBe(true);
     expect(body.position).toBe(1);
+
+    // The count query must use STRICT less-than on created_at — otherwise
+    // ahead-of-self semantics would silently revert to a self-inclusive count
+    // and we'd be back to off-by-one risk on the user-facing position.
+    expect(countWhereArgs).toContainEqual(["status", "=", "waiting"]);
+    expect(countWhereArgs).toContainEqual(["created_at", "<", onlyEntry.created_at]);
   });
 });
 
