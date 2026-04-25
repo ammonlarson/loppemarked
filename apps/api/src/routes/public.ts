@@ -789,9 +789,11 @@ const MASKED_NAME_HIDDEN_LENGTH = 5;
  * without leaking the full name to anyone who intercepts the link. Keeps
  * the first character of the first name part and pads the hidden portion
  * to a fixed length so the rendered mask never reveals the real name's
- * length.
+ * length. The empty-name branch is deliberately unreachable for valid
+ * registrations (name is required upstream); it is preserved as a
+ * length-preserving fallback so an empty input still does not leak.
  */
-function maskName(name: string): string {
+export function maskName(name: string): string {
   const firstPart = name.trim().split(/\s+/)[0] ?? "";
   const lead = firstPart.charAt(0);
   return `${lead}${"•".repeat(MASKED_NAME_HIDDEN_LENGTH)}`;

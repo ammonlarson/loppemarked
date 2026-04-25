@@ -19,6 +19,7 @@ import {
   handleValidateAddress,
   handleValidateRegistration,
   handleWaitlistPosition,
+  maskName,
 } from "./public.js";
 import { hashCancellationToken } from "../lib/cancellation-tokens.js";
 
@@ -1554,6 +1555,7 @@ describe("handleCancellationInfo", () => {
     expect(body.boxId).toBe(3);
     expect(body.tableLabel).toContain("#3");
     expect(body.recipientNameHint).toBe("A•••••");
+    expect(body.recipientNameHint).toHaveLength(6);
     expect(body).not.toHaveProperty("tableSizeMeters");
     expect(body).not.toHaveProperty("tableNumber");
   });
@@ -1704,5 +1706,31 @@ describe("handleCancellationConfirm", () => {
 
   it("hashes tokens deterministically for storage lookup", () => {
     expect(hashCancellationToken("abc")).toMatch(/^[0-9a-f]{64}$/);
+  });
+});
+
+describe("maskName", () => {
+  it("uses a fixed 5-character hidden portion regardless of input length", () => {
+    expect(maskName("A")).toBe("A•••••");
+    expect(maskName("Bo")).toBe("B•••••");
+    expect(maskName("Bartholomew Featherstonehaugh")).toBe("B•••••");
+    expect(maskName("Anna Jensen")).toBe("A•••••");
+  });
+
+  it("renders mask output of constant length for any non-empty input", () => {
+    expect(maskName("A")).toHaveLength(6);
+    expect(maskName("Anna Jensen")).toHaveLength(6);
+    expect(maskName("Bartholomew Featherstonehaugh")).toHaveLength(6);
+  });
+
+  it("returns a length-preserving fallback for empty or whitespace-only input", () => {
+    expect(maskName("")).toBe("•••••");
+    expect(maskName("   ")).toBe("•••••");
+    expect(maskName("\t\n")).toBe("•••••");
+  });
+
+  it("uses the first character of the first space-separated part", () => {
+    expect(maskName("Élise Müller")).toBe("É•••••");
+    expect(maskName("  Søren  Kierkegaard  ")).toBe("S•••••");
   });
 });
