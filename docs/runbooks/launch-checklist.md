@@ -74,7 +74,7 @@ FROM system_settings;
 - [x] Test registration triggers confirmation email
 - [x] Email appears in `emails` table with status `sent`
 - [x] Email sender shows `loppemarked@staging.un17hub.com`
-- [x] Reply-to is `elise7284@gmail.com`
+- [x] Reply-to is `ammonl@hotmail.com`
 - [x] Email content is bilingual (matches selected language)
 
 ### 1.5 Admin Accounts
@@ -242,7 +242,7 @@ curl -s "${PROD_API_URL}/admin/registrations" \
 - [x] Confirm email appears in `emails` table with status `sent`
 - [x] Confirm email is received in the test inbox
 - [x] Sender shows `loppemarked@un17hub.com`
-- [x] Reply-to is `elise7284@gmail.com`
+- [x] Reply-to is `ammonl@hotmail.com`
 - [x] Clean up test registration and reset box state
 
 ### 3.6 Monitoring

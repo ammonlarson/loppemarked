@@ -27,13 +27,13 @@ where resource-level scoping is possible.
 Each environment provisions its own SES domain identity, DKIM signing, and
 configuration set. Sender addresses default to `loppemarked@<ses_sender_domain>`
 and can be overridden via `ses_sender_email`. Reply-To defaults to
-`elise7284@gmail.com` (spec default) and can be overridden via
+`ammonl@hotmail.com` (spec default) and can be overridden via
 `ses_reply_to_email`.
 
 | Environment | Domain                 | Sender address                        | Reply-To                |
 |-------------|------------------------|---------------------------------------|-------------------------|
-| staging     | `staging.un17hub.com`  | `loppemarked@staging.un17hub.com`      | `elise7284@gmail.com`   |
-| prod        | `un17hub.com`          | `loppemarked@un17hub.com`              | `elise7284@gmail.com`   |
+| staging     | `staging.un17hub.com`  | `loppemarked@staging.un17hub.com`      | `ammonl@hotmail.com`    |
+| prod        | `un17hub.com`          | `loppemarked@un17hub.com`              | `ammonl@hotmail.com`    |
 
 ### DNS verification
 
@@ -72,7 +72,7 @@ to `https://loppemarked.staging.un17hub.com` for staging and
 | `environment`                 | Deployment environment name (staging, prod)          |
 | `vpc_cidr`                    | CIDR block for the VPC                               |
 | `ses_sender_domain`           | Domain for SES identity and Route 53 zone            |
-| `ses_reply_to_email`          | Default Reply-To (defaults to `elise7284@gmail.com`) |
+| `ses_reply_to_email`          | Default Reply-To (defaults to `ammonl@hotmail.com`)  |
 | `db_instance_class`           | RDS instance class                                   |
 
 See `variables.tf` for the full list with descriptions and defaults.
