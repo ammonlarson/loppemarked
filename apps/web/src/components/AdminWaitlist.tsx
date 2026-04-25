@@ -60,6 +60,23 @@ export function AdminWaitlist() {
     ];
   }, [entries, t]);
 
+  // Mirrors the server's queue ordering rule: created_at asc, id asc as tiebreaker.
+  const positionByEntryId = useMemo(() => {
+    const map = new Map<string, number>();
+    const waiting = entries
+      .filter((e) => e.status === "waiting")
+      .sort((a, b) => {
+        if (a.created_at !== b.created_at) {
+          return a.created_at < b.created_at ? -1 : 1;
+        }
+        return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+      });
+    waiting.forEach((entry, index) => {
+      map.set(entry.id, index + 1);
+    });
+    return map;
+  }, [entries]);
+
   const {
     sort,
     toggleSort,
@@ -557,6 +574,18 @@ export function AdminWaitlist() {
           >
             <thead>
               <tr style={{ textAlign: "left" }}>
+                <th
+                  scope="col"
+                  style={{
+                    padding: "0.5rem",
+                    borderBottom: `2px solid ${colors.borderTan}`,
+                    color: colors.warmBrown,
+                    fontFamily: fonts.body,
+                    width: "3rem",
+                  }}
+                >
+                  {t("admin.waitlist.queuePosition")}
+                </th>
                 <SortableHeader label={t("admin.waitlist.name")} sortKey="name" sort={sort} onToggle={toggleSort} />
                 <SortableHeader label={t("admin.waitlist.email")} sortKey="email" sort={sort} onToggle={toggleSort} />
                 <th style={{ padding: "0.5rem", borderBottom: `2px solid ${colors.borderTan}`, color: colors.warmBrown, fontFamily: fonts.body }}>{t("admin.waitlist.apartment")}</th>
@@ -566,8 +595,20 @@ export function AdminWaitlist() {
               </tr>
             </thead>
             <tbody>
-              {filteredEntries.map((entry) => (
+              {filteredEntries.map((entry) => {
+                const position = positionByEntryId.get(entry.id);
+                return (
                 <tr key={entry.id} style={{ borderBottom: `1px solid ${colors.parchment}` }}>
+                  <td
+                    style={{
+                      padding: "0.5rem",
+                      fontVariantNumeric: "tabular-nums",
+                      color: position !== undefined ? colors.warmBrown : colors.inkBrown,
+                    }}
+                    aria-label={position !== undefined ? `${t("admin.waitlist.queuePosition")} ${position}` : undefined}
+                  >
+                    {position ?? "—"}
+                  </td>
                   <td style={{ padding: "0.5rem" }}>{entry.name}</td>
                   <td style={{ padding: "0.5rem" }}>{entry.email}</td>
                   <td style={{ padding: "0.5rem", fontSize: "0.8rem" }}>
@@ -632,7 +673,8 @@ export function AdminWaitlist() {
                     )}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
           </div>
