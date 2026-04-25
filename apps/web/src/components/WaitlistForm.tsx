@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ELIGIBLE_STREET,
   HOUSE_NUMBER_MIN,
@@ -39,15 +39,6 @@ export function WaitlistForm({ onCancel }: WaitlistFormProps) {
   const parsedHouseNumber = parseInt(houseNumber, 10);
   const needsFloorDoor = !isNaN(parsedHouseNumber) && isFloorDoorRequired(parsedHouseNumber);
 
-  // Clear floor/door whenever the house number no longer requires them so
-  // stale values don't leak into the submitted payload (and the apartment key).
-  useEffect(() => {
-    if (!needsFloorDoor) {
-      setFloor("");
-      setDoor("");
-    }
-  }, [needsFloorDoor]);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors([]);
@@ -57,13 +48,16 @@ export function WaitlistForm({ onCancel }: WaitlistFormProps) {
       return;
     }
 
+    // Drop floor/door from the payload when the house number doesn't require
+    // them. Otherwise stale values (typed for a previous house number) would
+    // leak through and corrupt the apartment dedupe key.
     const input = {
       name: name.trim(),
       email: email.trim(),
       street: ELIGIBLE_STREET,
       houseNumber: parsedHouseNumber,
-      floor: floor.trim() || null,
-      door: door.trim() || null,
+      floor: needsFloorDoor ? floor.trim() || null : null,
+      door: needsFloorDoor ? door.trim() || null : null,
       language: language as Language,
       // Flea market has a single hall — send the any-preference default
       // to the existing API contract without exposing a pointless selector.
