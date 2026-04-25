@@ -1,7 +1,11 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { Kysely } from "kysely";
 import type { Database } from "../db/types.js";
-import { buildWaitlistPositionUpdateEmail, notifyDownstreamWaitlist } from "./waitlist-emails.js";
+import {
+  buildWaitlistJoinConfirmationEmail,
+  buildWaitlistPositionUpdateEmail,
+  notifyDownstreamWaitlist,
+} from "./waitlist-emails.js";
 
 vi.mock("./email-service.js", () => ({
   queueAndSendEmail: vi.fn().mockResolvedValue("email-id"),
@@ -108,6 +112,132 @@ describe("buildWaitlistPositionUpdateEmail", () => {
       recipientEmail: "x@y.com",
       language: "en",
       newPosition: 2,
+    });
+    expect(en.bodyHtml).toContain('lang="en"');
+  });
+});
+
+describe("buildWaitlistJoinConfirmationEmail", () => {
+  it("returns Danish subject and waitlist wording for da language", () => {
+    const result = buildWaitlistJoinConfirmationEmail({
+      recipientName: "Anna",
+      recipientEmail: "anna@example.com",
+      language: "da",
+      position: 4,
+    });
+    expect(result.subject).toContain("ventelisten");
+    expect(result.subject).toContain("UN17 Village Loppemarked");
+    expect(result.bodyHtml).toContain("ventelisten");
+  });
+
+  it("returns English subject and waitlist wording for en language", () => {
+    const result = buildWaitlistJoinConfirmationEmail({
+      recipientName: "Anna",
+      recipientEmail: "anna@example.com",
+      language: "en",
+      position: 4,
+    });
+    expect(result.subject).toContain("waitlist");
+    expect(result.subject).toContain("UN17 Village Loppemarked");
+    expect(result.bodyHtml).toContain("waitlist");
+  });
+
+  it("makes it explicit that the resident is not booked", () => {
+    const da = buildWaitlistJoinConfirmationEmail({
+      recipientName: "Anna",
+      recipientEmail: "anna@example.com",
+      language: "da",
+      position: 2,
+    });
+    expect(da.bodyHtml).toContain("endnu ikke et booket bord");
+
+    const en = buildWaitlistJoinConfirmationEmail({
+      recipientName: "Anna",
+      recipientEmail: "anna@example.com",
+      language: "en",
+      position: 2,
+    });
+    expect(en.bodyHtml).toContain("do not yet have a booked table");
+  });
+
+  it("includes recipient name in greeting", () => {
+    const result = buildWaitlistJoinConfirmationEmail({
+      recipientName: "Anna Jensen",
+      recipientEmail: "anna@example.com",
+      language: "da",
+      position: 1,
+    });
+    expect(result.bodyHtml).toContain("Anna Jensen");
+  });
+
+  it("includes the position number", () => {
+    const result = buildWaitlistJoinConfirmationEmail({
+      recipientName: "Anna",
+      recipientEmail: "anna@example.com",
+      language: "en",
+      position: 7,
+    });
+    expect(result.bodyHtml).toContain("#7");
+    expect(result.bodyHtml).toContain("number 7");
+  });
+
+  it("uses dedicated wording for position 1", () => {
+    const da = buildWaitlistJoinConfirmationEmail({
+      recipientName: "Anna",
+      recipientEmail: "anna@example.com",
+      language: "da",
+      position: 1,
+    });
+    expect(da.bodyHtml).toContain("nummer 1");
+    expect(da.bodyHtml).toContain("først i køen");
+
+    const en = buildWaitlistJoinConfirmationEmail({
+      recipientName: "Anna",
+      recipientEmail: "anna@example.com",
+      language: "en",
+      position: 1,
+    });
+    expect(en.bodyHtml).toContain("number 1");
+    expect(en.bodyHtml).toContain("first in line");
+  });
+
+  it("escapes HTML in recipient name", () => {
+    const result = buildWaitlistJoinConfirmationEmail({
+      recipientName: '<script>alert("xss")</script>',
+      recipientEmail: "x@y.com",
+      language: "en",
+      position: 1,
+    });
+    expect(result.bodyHtml).not.toContain("<script>");
+    expect(result.bodyHtml).toContain("&lt;script&gt;");
+  });
+
+  it("wraps with branded header and footer", () => {
+    const result = buildWaitlistJoinConfirmationEmail({
+      recipientName: "Anna",
+      recipientEmail: "anna@example.com",
+      language: "en",
+      position: 2,
+    });
+    expect(result.bodyHtml).toContain("UN17 Village Loppemarked");
+    expect(result.bodyHtml).toContain("#8DA88D");
+    expect(result.bodyHtml).toContain("Fælledhuset");
+  });
+
+  it("sets html lang attribute matching language", () => {
+    const da = buildWaitlistJoinConfirmationEmail({
+      recipientName: "X",
+      recipientEmail: "x@y.com",
+      language: "da",
+      position: 2,
+    });
+    expect(da.bodyHtml).toContain('lang="da"');
+
+    const en = buildWaitlistJoinConfirmationEmail({
+      recipientName: "X",
+      recipientEmail: "x@y.com",
+      language: "en",
+      position: 2,
     });
     expect(en.bodyHtml).toContain('lang="en"');
   });
