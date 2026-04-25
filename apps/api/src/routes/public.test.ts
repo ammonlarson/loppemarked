@@ -1554,13 +1554,13 @@ describe("handleCancellationInfo", () => {
     expect(body.alreadyCancelled).toBe(false);
     expect(body.boxId).toBe(3);
     expect(body.tableLabel).toContain("#3");
-    expect(body.recipientNameHint).toBe("A•••••");
-    expect(body.recipientNameHint).toHaveLength(6);
+    expect(body.recipientNameHint).toBe("A••••• J•••••");
+    expect(body.recipientNameHint).toHaveLength(13);
     expect(body).not.toHaveProperty("tableSizeMeters");
     expect(body).not.toHaveProperty("tableNumber");
   });
 
-  it("renders the same fixed-length mask regardless of name length", async () => {
+  it("masks each name part to a fixed-length per-part mask", async () => {
     const longNameDb = makeMockDbForCancellation({
       tokenRow: {
         id: "tok-1",
@@ -1587,7 +1587,7 @@ describe("handleCancellationInfo", () => {
       regRow: {
         id: "reg-2",
         box_id: 3,
-        name: "Bo",
+        name: "Bart Fjord",
         email: "bo@example.com",
         language: "da",
         status: "active",
@@ -1602,8 +1602,8 @@ describe("handleCancellationInfo", () => {
     );
     const longBody = longRes.body as Record<string, unknown>;
     const shortBody = shortRes.body as Record<string, unknown>;
-    expect(longBody.recipientNameHint).toBe("B•••••");
-    expect(shortBody.recipientNameHint).toBe("B•••••");
+    expect(longBody.recipientNameHint).toBe("B••••• F•••••");
+    expect(shortBody.recipientNameHint).toBe("B••••• F•••••");
   });
 
   it("flags already-cancelled registrations without exposing identity", async () => {
@@ -1710,17 +1710,18 @@ describe("handleCancellationConfirm", () => {
 });
 
 describe("maskName", () => {
-  it("uses a fixed 5-character hidden portion regardless of input length", () => {
+  it("masks each name part with a fixed 5-character hidden portion", () => {
     expect(maskName("A")).toBe("A•••••");
     expect(maskName("Bo")).toBe("B•••••");
-    expect(maskName("Bartholomew Featherstonehaugh")).toBe("B•••••");
-    expect(maskName("Anna Jensen")).toBe("A•••••");
+    expect(maskName("Anna Jensen")).toBe("A••••• J•••••");
+    expect(maskName("Bartholomew Featherstonehaugh")).toBe("B••••• F•••••");
+    expect(maskName("Anna Marie Jensen")).toBe("A••••• M••••• J•••••");
   });
 
-  it("renders mask output of constant length for any non-empty input", () => {
-    expect(maskName("A")).toHaveLength(6);
-    expect(maskName("Anna Jensen")).toHaveLength(6);
-    expect(maskName("Bartholomew Featherstonehaugh")).toHaveLength(6);
+  it("renders the same per-part mask regardless of how long each part is", () => {
+    expect(maskName("Anna Jensen")).toBe("A••••• J•••••");
+    expect(maskName("Annabella Jensenovich")).toBe("A••••• J•••••");
+    expect(maskName("A J")).toBe("A••••• J•••••");
   });
 
   it("returns a length-preserving fallback for empty or whitespace-only input", () => {
@@ -1729,8 +1730,8 @@ describe("maskName", () => {
     expect(maskName("\t\n")).toBe("•••••");
   });
 
-  it("uses the first character of the first space-separated part", () => {
-    expect(maskName("Élise Müller")).toBe("É•••••");
-    expect(maskName("  Søren  Kierkegaard  ")).toBe("S•••••");
+  it("uses the first character of each space-separated part", () => {
+    expect(maskName("Élise Müller")).toBe("É••••• M•••••");
+    expect(maskName("  Søren  Kierkegaard  ")).toBe("S••••• K•••••");
   });
 });

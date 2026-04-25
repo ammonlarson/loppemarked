@@ -787,14 +787,19 @@ const MASKED_NAME_HIDDEN_LENGTH = 5;
 /**
  * Mask a personal name so the cancellation preview can confirm identity
  * without leaking the full name to anyone who intercepts the link. Keeps
- * the first character of the first name part and pads the hidden portion
- * to a fixed length so the rendered mask never reveals the real name's
- * length. The empty-name branch is deliberately unreachable for valid
- * registrations (name is required upstream); it is preserved as a
- * length-preserving fallback so an empty input still does not leak.
+ * the first character of every space-separated part and pads each part's
+ * hidden portion to a fixed length, so the rendered mask never reveals
+ * the real length of any individual name part. The empty-name branch is
+ * deliberately unreachable for valid registrations (name is required
+ * upstream); it is preserved as a length-preserving fallback so an empty
+ * input still does not leak.
  */
 export function maskName(name: string): string {
-  const firstPart = name.trim().split(/\s+/)[0] ?? "";
-  const lead = firstPart.charAt(0);
-  return `${lead}${"•".repeat(MASKED_NAME_HIDDEN_LENGTH)}`;
+  const parts = name.trim().split(/\s+/).filter((p) => p.length > 0);
+  if (parts.length === 0) {
+    return "•".repeat(MASKED_NAME_HIDDEN_LENGTH);
+  }
+  return parts
+    .map((part) => `${part.charAt(0)}${"•".repeat(MASKED_NAME_HIDDEN_LENGTH)}`)
+    .join(" ");
 }
