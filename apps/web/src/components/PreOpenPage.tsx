@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { OPENING_TIMEZONE } from "@loppemarked/shared";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { HeroScene } from "@/components/HeroScene";
@@ -21,17 +21,15 @@ interface CountdownParts {
   hours: number;
   minutes: number;
   seconds: number;
-  totalMs: number;
 }
 
 function diffParts(targetMs: number, nowMs: number): CountdownParts {
-  const totalMs = Math.max(0, targetMs - nowMs);
-  const totalSeconds = Math.floor(totalMs / 1000);
+  const totalSeconds = Math.max(0, Math.floor((targetMs - nowMs) / 1000));
   const days = Math.floor(totalSeconds / 86_400);
   const hours = Math.floor((totalSeconds % 86_400) / 3_600);
   const minutes = Math.floor((totalSeconds % 3_600) / 60);
   const seconds = totalSeconds % 60;
-  return { days, hours, minutes, seconds, totalMs };
+  return { days, hours, minutes, seconds };
 }
 
 interface PreOpenPageProps {
@@ -42,7 +40,7 @@ export function PreOpenPage({ openingDatetime }: PreOpenPageProps) {
   const { language, t } = useLanguage();
   const locale = language === "da" ? "da-DK" : "en-GB";
   const formattedDate = formatOpeningDatetime(openingDatetime, locale);
-  const targetMs = useMemo(() => new Date(openingDatetime).getTime(), [openingDatetime]);
+  const targetMs = new Date(openingDatetime).getTime();
 
   // Initialize from a deterministic snapshot so the SSR markup matches the
   // first client paint; the interval below then keeps the diff fresh.
@@ -107,14 +105,10 @@ function FlipBoardCountdown({ parts, labels, ariaLabel }: FlipBoardCountdownProp
   // Days can exceed two digits for far-out openings; clamp the rest to two
   // digits so the flip tiles stay aligned.
   const dayWidth = parts.days >= 100 ? 3 : 2;
+  // role="timer" gives the board an accessible name; we deliberately omit
+  // aria-live so screen readers don't announce every per-second tick.
   return (
-    <div
-      className="flea-flipboard"
-      role="timer"
-      aria-live="polite"
-      aria-label={ariaLabel}
-      data-testid="flea-flipboard"
-    >
+    <div className="flea-flipboard" role="timer" aria-label={ariaLabel} data-testid="flea-flipboard">
       <FlipUnit value={parts.days} label={labels.days} digits={dayWidth} />
       <FlipSeparator />
       <FlipUnit value={parts.hours} label={labels.hours} digits={2} />
@@ -141,9 +135,8 @@ function FlipUnit({ value, label, digits }: FlipUnitProps) {
           <FlipDigit key={`${index}-${digits}`} digit={digit} />
         ))}
       </div>
-      <span className="flea-flipboard__label">{label}</span>
-      <span className="flea-flipboard__sr">
-        {value} {label}
+      <span className="flea-flipboard__label" aria-hidden="true">
+        {label}
       </span>
     </div>
   );
