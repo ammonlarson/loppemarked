@@ -27,6 +27,18 @@ interface WaitlistPositionEmail {
   bodyHtml: string;
 }
 
+interface WaitlistJoinConfirmationEmailInput {
+  recipientName: string;
+  recipientEmail: string;
+  language: Language;
+  position: number;
+}
+
+interface WaitlistJoinConfirmationEmail {
+  subject: string;
+  bodyHtml: string;
+}
+
 const translations = {
   da: {
     subject: "Din ventelisteposition er forbedret – UN17 Village Loppemarked",
@@ -58,6 +70,41 @@ const translations = {
   },
 } as const;
 
+const joinConfirmationTranslations = {
+  da: {
+    subject: "Du er på ventelisten – UN17 Village Loppemarked",
+    greeting: (name: string) => `Kære ${name},`,
+    intro:
+      "Tak for din tilmelding til ventelisten for UN17 Village Loppemarked i Fælledhuset. Alle borde er aktuelt booket, men du står nu på ventelisten.",
+    statusNote:
+      "Bemærk: Du har endnu ikke et booket bord. Vi giver dig besked, hvis et bord bliver ledigt og tildelt dig.",
+    positionLabel: "Din plads på ventelisten",
+    positionDetail: (position: number) =>
+      position === 1
+        ? "Du er nummer 1 på ventelisten — du står først i køen."
+        : `Du er nummer ${position} på ventelisten.`,
+    nextSteps:
+      "Du behøver ikke at gøre noget lige nu. Hvis et bord bliver ledigt og tilbudt dig, sender vi en ny e-mail med detaljerne.",
+    teamSignature: "UN17 Village Loppemarked-teamet",
+  },
+  en: {
+    subject: "You're on the waitlist – UN17 Village Loppemarked",
+    greeting: (name: string) => `Dear ${name},`,
+    intro:
+      "Thank you for signing up for the UN17 Village Loppemarked waitlist at Fælledhuset. All tables are currently booked, but you are now on the waitlist.",
+    statusNote:
+      "Please note: you do not yet have a booked table. We will let you know if a table opens up and is assigned to you.",
+    positionLabel: "Your waitlist position",
+    positionDetail: (position: number) =>
+      position === 1
+        ? "You are number 1 on the waitlist — you are first in line."
+        : `You are number ${position} on the waitlist.`,
+    nextSteps:
+      "No action is needed right now. If a table becomes available and is offered to you, we will send a follow-up email with the details.",
+    teamSignature: "The UN17 Village Loppemarked Team",
+  },
+} as const;
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
@@ -82,6 +129,32 @@ export function buildWaitlistPositionUpdateEmail(
         <p style="margin: 6px 0 0; color: ${BRAND.ink}; font-size: 14px;">${escapeHtml(positionText)}</p>
       </div>
       <p>${escapeHtml(t.closing)}</p>
+      <p style="font-weight: bold; color: ${BRAND.greenDark};">${escapeHtml(t.teamSignature)}</p>`;
+
+  return {
+    subject: t.subject,
+    bodyHtml: wrapEmailHtml(input.language, t.subject, contentHtml),
+  };
+}
+
+export function buildWaitlistJoinConfirmationEmail(
+  input: WaitlistJoinConfirmationEmailInput,
+): WaitlistJoinConfirmationEmail {
+  const t = joinConfirmationTranslations[input.language];
+  const positionText = t.positionDetail(input.position);
+
+  const contentHtml = `
+      <p style="margin-top: 0;">${escapeHtml(t.greeting(input.recipientName))}</p>
+      <p>${escapeHtml(t.intro)}</p>
+      <div style="background: ${BRAND.salmonSoft}; border-left: 4px solid ${BRAND.salmon}; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">
+        <p style="margin: 0; color: ${BRAND.salmonDark};">${escapeHtml(t.statusNote)}</p>
+      </div>
+      <div style="background: ${BRAND.greenSoft}; border-left: 4px solid ${BRAND.greenDark}; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">
+        <p style="margin: 0 0 4px; font-weight: 600; color: ${BRAND.ink};">${escapeHtml(t.positionLabel)}</p>
+        <p style="margin: 0; color: ${BRAND.greenDark}; font-size: 18px; font-weight: bold;">#${input.position}</p>
+        <p style="margin: 6px 0 0; color: ${BRAND.ink}; font-size: 14px;">${escapeHtml(positionText)}</p>
+      </div>
+      <p>${escapeHtml(t.nextSteps)}</p>
       <p style="font-weight: bold; color: ${BRAND.greenDark};">${escapeHtml(t.teamSignature)}</p>`;
 
   return {

@@ -22,6 +22,8 @@ import {
 import { buildConfirmationEmail } from "../lib/email-templates.js";
 import { queueAndSendEmail } from "../lib/email-service.js";
 import { badRequest, conflict, notFound } from "../lib/errors.js";
+import { logger } from "../lib/logger.js";
+import { buildWaitlistJoinConfirmationEmail } from "../lib/waitlist-emails.js";
 import type { RequestContext, RouteResponse } from "../router.js";
 
 export async function handlePublicStatus(ctx: RequestContext): Promise<RouteResponse> {
@@ -544,6 +546,26 @@ export async function handleJoinWaitlist(ctx: RequestContext): Promise<RouteResp
   }
 
   const position = await getWaitlistPosition(ctx, apartmentKey);
+
+  try {
+    const email = buildWaitlistJoinConfirmationEmail({
+      recipientName: body.name!,
+      recipientEmail: body.email!,
+      language: body.language!,
+      position,
+    });
+
+    await queueAndSendEmail(ctx.db, {
+      recipientEmail: body.email!,
+      language: body.language!,
+      subject: email.subject,
+      bodyHtml: email.bodyHtml,
+    });
+  } catch (err) {
+    // The signup itself succeeded; the email is best-effort and must not
+    // surface a failure to the resident.
+    logger.error("Failed to send waitlist signup confirmation email", err);
+  }
 
   return {
     statusCode: 201,
