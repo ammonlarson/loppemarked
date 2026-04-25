@@ -66,9 +66,9 @@ export function AdminWaitlist() {
     const waiting = entries
       .filter((e) => e.status === "waiting")
       .sort((a, b) => {
-        if (a.created_at !== b.created_at) {
-          return a.created_at < b.created_at ? -1 : 1;
-        }
+        const aTime = new Date(a.created_at).getTime();
+        const bTime = new Date(b.created_at).getTime();
+        if (aTime !== bTime) return aTime - bTime;
         return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
       });
     waiting.forEach((entry, index) => {
@@ -575,7 +575,7 @@ export function AdminWaitlist() {
             <thead>
               <tr style={{ textAlign: "left" }}>
                 <th
-                  scope="col"
+                  aria-label={t("admin.waitlist.queuePositionAria")}
                   style={{
                     padding: "0.5rem",
                     borderBottom: `2px solid ${colors.borderTan}`,
@@ -598,81 +598,81 @@ export function AdminWaitlist() {
               {filteredEntries.map((entry) => {
                 const position = positionByEntryId.get(entry.id);
                 return (
-                <tr key={entry.id} style={{ borderBottom: `1px solid ${colors.parchment}` }}>
-                  <td
-                    style={{
-                      padding: "0.5rem",
-                      fontVariantNumeric: "tabular-nums",
-                      color: position !== undefined ? colors.warmBrown : colors.inkBrown,
-                    }}
-                    aria-label={position !== undefined ? `${t("admin.waitlist.queuePosition")} ${position}` : undefined}
-                  >
-                    {position ?? "—"}
-                  </td>
-                  <td style={{ padding: "0.5rem" }}>{entry.name}</td>
-                  <td style={{ padding: "0.5rem" }}>{entry.email}</td>
-                  <td style={{ padding: "0.5rem", fontSize: "0.8rem" }}>
-                    {formatAddress(entry.street, entry.house_number, entry.floor, entry.door)}
-                  </td>
-                  <td style={{ padding: "0.5rem" }}>
-                    <span
+                  <tr key={entry.id} style={{ borderBottom: `1px solid ${colors.parchment}` }}>
+                    <td
                       style={{
-                        display: "inline-block",
-                        padding: "0.15rem 0.5rem",
-                        borderRadius: 12,
-                        fontSize: "0.75rem",
-                        fontWeight: 600,
-                        background: entry.status === "waiting" ? colors.warningBg : colors.parchment,
-                        color: entry.status === "waiting" ? colors.mutedGold : colors.warmBrown,
+                        padding: "0.5rem",
+                        fontVariantNumeric: "tabular-nums",
+                        color: position !== undefined ? colors.warmBrown : colors.inkBrown,
                       }}
+                      aria-label={position === undefined ? t("admin.waitlist.notInQueue") : undefined}
                     >
-                      {entry.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: "0.5rem", whiteSpace: "nowrap" }}>
-                    {formatDateTime(entry.created_at, language)}
-                  </td>
-                  <td style={{ padding: "0.5rem" }}>
-                    {entry.status === "waiting" && (
-                      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                        <button
-                          type="button"
-                          onClick={() => openAssignDialog(entry)}
-                          disabled={assigningEntry !== null || removingEntry !== null}
-                          style={{
-                            padding: "0.25rem 0.75rem",
-                            border: `1px solid ${colors.sage}`,
-                            borderRadius: 4,
-                            background: colors.white,
-                            color: colors.sage,
-                            cursor: assigningEntry !== null || removingEntry !== null ? "not-allowed" : "pointer",
-                            fontSize: "0.8rem",
-                            fontFamily: fonts.body,
-                          }}
-                        >
-                          {t("admin.waitlist.assign")}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => openRemoveDialog(entry)}
-                          disabled={assigningEntry !== null || removingEntry !== null}
-                          style={{
-                            padding: "0.25rem 0.75rem",
-                            border: `1px solid ${colors.dustyRose}`,
-                            borderRadius: 4,
-                            background: colors.white,
-                            color: colors.dustyRose,
-                            cursor: assigningEntry !== null || removingEntry !== null ? "not-allowed" : "pointer",
-                            fontSize: "0.8rem",
-                            fontFamily: fonts.body,
-                          }}
-                        >
-                          {t("admin.waitlist.remove")}
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
+                      {position ?? "—"}
+                    </td>
+                    <td style={{ padding: "0.5rem" }}>{entry.name}</td>
+                    <td style={{ padding: "0.5rem" }}>{entry.email}</td>
+                    <td style={{ padding: "0.5rem", fontSize: "0.8rem" }}>
+                      {formatAddress(entry.street, entry.house_number, entry.floor, entry.door)}
+                    </td>
+                    <td style={{ padding: "0.5rem" }}>
+                      <span
+                        style={{
+                          display: "inline-block",
+                          padding: "0.15rem 0.5rem",
+                          borderRadius: 12,
+                          fontSize: "0.75rem",
+                          fontWeight: 600,
+                          background: entry.status === "waiting" ? colors.warningBg : colors.parchment,
+                          color: entry.status === "waiting" ? colors.mutedGold : colors.warmBrown,
+                        }}
+                      >
+                        {entry.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: "0.5rem", whiteSpace: "nowrap" }}>
+                      {formatDateTime(entry.created_at, language)}
+                    </td>
+                    <td style={{ padding: "0.5rem" }}>
+                      {entry.status === "waiting" && (
+                        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                          <button
+                            type="button"
+                            onClick={() => openAssignDialog(entry)}
+                            disabled={assigningEntry !== null || removingEntry !== null}
+                            style={{
+                              padding: "0.25rem 0.75rem",
+                              border: `1px solid ${colors.sage}`,
+                              borderRadius: 4,
+                              background: colors.white,
+                              color: colors.sage,
+                              cursor: assigningEntry !== null || removingEntry !== null ? "not-allowed" : "pointer",
+                              fontSize: "0.8rem",
+                              fontFamily: fonts.body,
+                            }}
+                          >
+                            {t("admin.waitlist.assign")}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openRemoveDialog(entry)}
+                            disabled={assigningEntry !== null || removingEntry !== null}
+                            style={{
+                              padding: "0.25rem 0.75rem",
+                              border: `1px solid ${colors.dustyRose}`,
+                              borderRadius: 4,
+                              background: colors.white,
+                              color: colors.dustyRose,
+                              cursor: assigningEntry !== null || removingEntry !== null ? "not-allowed" : "pointer",
+                              fontSize: "0.8rem",
+                              fontFamily: fonts.body,
+                            }}
+                          >
+                            {t("admin.waitlist.remove")}
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
                 );
               })}
             </tbody>
