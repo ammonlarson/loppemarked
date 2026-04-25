@@ -351,6 +351,10 @@ const da = {
   "admin.waitlist.removeConfirmHint":
     "Fjern denne ventelisteindgang permanent. Der oprettes ingen booking, og den valgte person får ingen besked.",
   "admin.waitlist.removed": "Ventelisteindgang fjernet",
+  "admin.waitlist.notifyDownstream":
+    "Underret efterfølgende på ventelisten om deres nye position",
+  "admin.waitlist.notifyDownstreamHint":
+    "Send en e-mail til alle, der står efter denne person på ventelisten, med deres opdaterede position.",
 
   "admin.tables.title": "Loppebordsoversigt",
   "admin.tables.number": "Bord",
@@ -801,6 +805,10 @@ const en: Record<TranslationKey, string> = {
   "admin.waitlist.removeConfirmHint":
     "Permanently remove this waitlist entry. No booking is created and no notification is sent to the person.",
   "admin.waitlist.removed": "Waitlist entry removed",
+  "admin.waitlist.notifyDownstream":
+    "Notify downstream waitlist members of their new position",
+  "admin.waitlist.notifyDownstreamHint":
+    "Send an email to everyone behind this person on the waitlist with their updated position.",
 
   "admin.tables.title": "Table Overview",
   "admin.tables.number": "Table",
