@@ -160,7 +160,7 @@ export const OPENING_TIMEZONE = "Europe/Copenhagen" as const;
 
 /** Email sender configuration */
 export const EMAIL_FROM = "loppemarked@un17hub.com" as const;
-export const EMAIL_REPLY_TO = "elise7284@gmail.com" as const;
+export const EMAIL_REPLY_TO = "ammonl@hotmail.com" as const;
 export const EMAIL_FROM_NAMES: Record<"da" | "en", string> = {
   da: "UN17 Village Loppemarked",
   en: "UN17 Village Loppemarked",

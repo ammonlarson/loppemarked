@@ -102,7 +102,7 @@ variable "ses_sender_email" {
 variable "ses_reply_to_email" {
   description = "Default Reply-To address for outbound email."
   type        = string
-  default     = "elise7284@gmail.com"
+  default     = "ammonl@hotmail.com"
 }
 
 # ---------- Amplify ----------
