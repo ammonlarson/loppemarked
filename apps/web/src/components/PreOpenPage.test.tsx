@@ -75,4 +75,46 @@ describe("PreOpenPage", () => {
     const after = board.textContent ?? "";
     expect(after).not.toBe(initial);
   });
+
+  it("refreshes the page when the countdown completes", () => {
+    vi.setSystemTime(new Date("2026-04-01T09:59:58.000Z"));
+    const reload = vi.fn();
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...window.location, reload },
+    });
+
+    render(<PreOpenPage openingDatetime={OPENING} />);
+
+    expect(reload).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(3_000);
+    });
+
+    expect(reload).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      vi.advanceTimersByTime(5_000);
+    });
+
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not refresh if the page mounts after the countdown already finished", () => {
+    vi.setSystemTime(new Date("2026-04-01T10:00:05.000Z"));
+    const reload = vi.fn();
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...window.location, reload },
+    });
+
+    render(<PreOpenPage openingDatetime={OPENING} />);
+
+    act(() => {
+      vi.advanceTimersByTime(5_000);
+    });
+
+    expect(reload).not.toHaveBeenCalled();
+  });
 });
