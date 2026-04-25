@@ -13,7 +13,7 @@ function makeCtx(overrides: Partial<RequestContext> = {}): RequestContext {
   return {
     db: {} as Kysely<Database>,
     method: "POST",
-    path: "/admin/staging/fill-boxes",
+    path: "/admin/staging/fill-tables",
     body: undefined,
     headers: {},
     params: {},

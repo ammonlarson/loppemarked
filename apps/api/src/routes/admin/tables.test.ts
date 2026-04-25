@@ -3,7 +3,7 @@ import type { Kysely } from "kysely";
 import type { Database } from "../../db/types.js";
 import type { RequestContext } from "../../router.js";
 import { AppError } from "../../lib/errors.js";
-import { handleAdminTables, handleReserveTable, handleReleaseTable } from "./boxes.js";
+import { handleAdminTables, handleReserveTable, handleReleaseTable } from "./tables.js";
 
 vi.mock("../../lib/audit.js", () => ({
   logAuditEvent: vi.fn().mockResolvedValue(undefined),
@@ -17,7 +17,7 @@ function makeCtx(overrides: Partial<RequestContext> = {}): RequestContext {
   return {
     db: {} as Kysely<Database>,
     method: "GET",
-    path: "/admin/boxes",
+    path: "/admin/tables",
     body: undefined,
     headers: {},
     params: {},

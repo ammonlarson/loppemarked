@@ -32,7 +32,7 @@ src/
 ├── components/
 │   ├── AdminAccount.tsx            Admin account management (CRUD, password change)
 │   ├── AdminAuditLog.tsx           Admin audit log viewer
-│   ├── AdminBoxes.tsx              Admin table management panel
+│   ├── AdminTables.tsx             Admin table management panel
 │   ├── AdminDashboard.tsx          Admin dashboard layout with tab navigation and logout
 │   ├── AdminLogin.tsx              Admin login form
 │   ├── AdminPage.tsx               Admin page container and auth gate

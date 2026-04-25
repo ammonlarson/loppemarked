@@ -97,7 +97,7 @@ function enrichBox(b: Box): BoxRow {
   };
 }
 
-export function AdminBoxes() {
+export function AdminTables() {
   const { t } = useLanguage();
   const [boxes, setBoxes] = useState<Box[]>([]);
   const [loading, setLoading] = useState(true);
@@ -155,7 +155,7 @@ export function AdminBoxes() {
 
   const fetchBoxes = useCallback(async () => {
     try {
-      const res = await fetch("/admin/boxes", { credentials: "include" });
+      const res = await fetch("/admin/tables", { credentials: "include" });
       if (res.ok) {
         setBoxes(await res.json());
       } else {
@@ -211,7 +211,7 @@ export function AdminBoxes() {
     setSubmitting(true);
     setMessage(null);
     try {
-      const res = await fetch("/admin/boxes/reserve", {
+      const res = await fetch("/admin/tables/reserve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -237,7 +237,7 @@ export function AdminBoxes() {
     setSubmitting(true);
     setMessage(null);
     try {
-      const res = await fetch("/admin/boxes/release", {
+      const res = await fetch("/admin/tables/release", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

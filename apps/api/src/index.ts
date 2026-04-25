@@ -9,7 +9,7 @@ import { Router } from "./router.js";
 import type { RequestContext } from "./router.js";
 import { handleCreateAdmin, handleDeleteAdmin, handleListAdmins } from "./routes/admin/admins.js";
 import { handleListAuditEvents } from "./routes/admin/audit.js";
-import { handleAdminTables, handleReserveTable, handleReleaseTable } from "./routes/admin/boxes.js";
+import { handleAdminTables, handleReserveTable, handleReleaseTable } from "./routes/admin/tables.js";
 import { handleChangePassword, handleLogin, handleLogout, handleMe } from "./routes/admin/auth.js";
 import {
   handleAssignWaitlist,

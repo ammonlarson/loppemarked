@@ -5,7 +5,7 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 import { colors, fonts } from "@/styles/theme";
 import { AdminRegistrations } from "./AdminRegistrations";
 import { AdminWaitlist } from "./AdminWaitlist";
-import { AdminBoxes } from "./AdminBoxes";
+import { AdminTables } from "./AdminTables";
 import { AdminSettings } from "./AdminSettings";
 import { AdminAuditLog } from "./AdminAuditLog";
 import { AdminAccount } from "./AdminAccount";
@@ -14,15 +14,15 @@ import { AdminStagingTools } from "./AdminStagingTools";
 
 const isStaging = process.env.NEXT_PUBLIC_ENV === "staging";
 
-type Tab = "registrations" | "waitlist" | "boxes" | "messaging" | "settings" | "audit" | "account" | "stagingTools";
+type Tab = "registrations" | "waitlist" | "tables" | "messaging" | "settings" | "audit" | "account" | "stagingTools";
 
-const BASE_TABS: Tab[] = ["boxes", "waitlist", "registrations", "messaging", "settings", "audit", "account"];
+const BASE_TABS: Tab[] = ["tables", "waitlist", "registrations", "messaging", "settings", "audit", "account"];
 const TABS: Tab[] = isStaging ? [...BASE_TABS, "stagingTools"] : BASE_TABS;
 
 const TAB_KEYS: Record<Tab, "admin.tab.registrations" | "admin.tab.waitlist" | "admin.tab.tables" | "admin.tab.messaging" | "admin.tab.settings" | "admin.tab.audit" | "admin.tab.account" | "admin.tab.stagingTools"> = {
   registrations: "admin.tab.registrations",
   waitlist: "admin.tab.waitlist",
-  boxes: "admin.tab.tables",
+  tables: "admin.tab.tables",
   messaging: "admin.tab.messaging",
   settings: "admin.tab.settings",
   audit: "admin.tab.audit",
@@ -36,7 +36,7 @@ interface AdminDashboardProps {
 
 export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<Tab>("boxes");
+  const [activeTab, setActiveTab] = useState<Tab>("tables");
   const [loggingOut, setLoggingOut] = useState(false);
 
   async function handleLogout() {
@@ -134,7 +134,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
       <div role="tabpanel" style={{ margin: "0 auto" }}>
         {activeTab === "registrations" && <AdminRegistrations />}
         {activeTab === "waitlist" && <AdminWaitlist />}
-        {activeTab === "boxes" && <AdminBoxes />}
+        {activeTab === "tables" && <AdminTables />}
         {activeTab === "messaging" && <AdminMessaging />}
         {activeTab === "settings" && <AdminSettings />}
         {activeTab === "audit" && <AdminAuditLog />}

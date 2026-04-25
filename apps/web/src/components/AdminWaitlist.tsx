@@ -98,7 +98,7 @@ export function AdminWaitlist() {
 
   const fetchBoxStates = useCallback(async () => {
     try {
-      const res = await fetch("/admin/boxes", { credentials: "include" });
+      const res = await fetch("/admin/tables", { credentials: "include" });
       if (res.ok) {
         const boxes: { id: number; state: BoxState }[] = await res.json();
         setBoxStates(new Map(boxes.map((b) => [b.id, b.state])));

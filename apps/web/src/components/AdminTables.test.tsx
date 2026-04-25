@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, act, cleanup } from "@testing-library/react";
-import { AdminBoxes } from "./AdminBoxes";
+import { AdminTables } from "./AdminTables";
 
 vi.mock("@/i18n/LanguageProvider", () => ({
   useLanguage: () => ({ language: "en", setLanguage: vi.fn(), t: (key: string) => key }),
@@ -18,7 +18,7 @@ const mockBoxes = [
   { id: 3, state: "reserved", registration: null },
 ];
 
-describe("AdminBoxes", () => {
+describe("AdminTables", () => {
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
@@ -31,7 +31,7 @@ describe("AdminBoxes", () => {
     }));
 
     await act(async () => {
-      render(<AdminBoxes />);
+      render(<AdminTables />);
     });
 
     expect(screen.getByText("admin.tables.title")).toBeDefined();
@@ -48,7 +48,7 @@ describe("AdminBoxes", () => {
     }));
 
     await act(async () => {
-      render(<AdminBoxes />);
+      render(<AdminTables />);
     });
 
     await act(async () => {
@@ -68,7 +68,7 @@ describe("AdminBoxes", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await act(async () => {
-      render(<AdminBoxes />);
+      render(<AdminTables />);
     });
 
     await act(async () => {
@@ -80,7 +80,7 @@ describe("AdminBoxes", () => {
     });
 
     const reserveCall = fetchMock.mock.calls[1];
-    expect(reserveCall[0]).toBe("/admin/boxes/reserve");
+    expect(reserveCall[0]).toBe("/admin/tables/reserve");
     expect(JSON.parse(reserveCall[1].body)).toEqual({ tableId: 1 });
   });
 
@@ -91,7 +91,7 @@ describe("AdminBoxes", () => {
     }));
 
     await act(async () => {
-      render(<AdminBoxes />);
+      render(<AdminTables />);
     });
 
     await act(async () => {
@@ -109,7 +109,7 @@ describe("AdminBoxes", () => {
     }));
 
     await act(async () => {
-      render(<AdminBoxes />);
+      render(<AdminTables />);
     });
 
     await act(async () => {
@@ -129,7 +129,7 @@ describe("AdminBoxes", () => {
     }));
 
     await act(async () => {
-      render(<AdminBoxes />);
+      render(<AdminTables />);
     });
 
     const addButtons = screen.getAllByText("admin.tables.addRegistration");
@@ -149,7 +149,7 @@ describe("AdminBoxes", () => {
     }));
 
     await act(async () => {
-      render(<AdminBoxes />);
+      render(<AdminTables />);
     });
 
     const addButtons = screen.getAllByText("admin.tables.addRegistration");
@@ -171,7 +171,7 @@ describe("AdminBoxes", () => {
     }));
 
     await act(async () => {
-      render(<AdminBoxes />);
+      render(<AdminTables />);
     });
 
     const addButtons = screen.getAllByText("admin.tables.addRegistration");
@@ -192,7 +192,7 @@ describe("AdminBoxes", () => {
     }));
 
     await act(async () => {
-      render(<AdminBoxes />);
+      render(<AdminTables />);
     });
 
     await act(async () => {
@@ -209,7 +209,7 @@ describe("AdminBoxes", () => {
     }));
 
     await act(async () => {
-      render(<AdminBoxes />);
+      render(<AdminTables />);
     });
 
     expect(screen.getByText("(Alice)")).toBeDefined();
@@ -219,7 +219,7 @@ describe("AdminBoxes", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("fail")));
 
     await act(async () => {
-      render(<AdminBoxes />);
+      render(<AdminTables />);
     });
 
     expect(screen.getByText("common.error")).toBeDefined();
@@ -232,7 +232,7 @@ describe("AdminBoxes", () => {
     }));
 
     await act(async () => {
-      render(<AdminBoxes />);
+      render(<AdminTables />);
     });
 
     await act(async () => {
