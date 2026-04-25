@@ -32,7 +32,7 @@ vi.mock("./NotificationComposer", () => ({
 const registrations = [
   {
     id: "r1",
-    box_id: 1,
+    table_id: 1,
     name: "Alice",
     email: "alice@test.com",
     street: "Else Alfelts Vej",
@@ -46,7 +46,7 @@ const registrations = [
   },
   {
     id: "r2",
-    box_id: 5,
+    table_id: 5,
     name: "Bob",
     email: "bob@test.com",
     street: "Else Alfelts Vej",
@@ -183,7 +183,7 @@ describe("AdminRegistrations", () => {
       const fetchMock = mockFetch([
         { ok: true, body: registrations },
         { ok: true, body: [] },
-        { ok: true, status: 201, body: { id: "r3", boxId: 10, apartmentKey: "Test" } },
+        { ok: true, status: 201, body: { id: "r3", tableId: 10, apartmentKey: "Test" } },
         { ok: true, body: registrations },
         { ok: true, body: [] },
       ]);
@@ -229,7 +229,7 @@ describe("AdminRegistrations", () => {
       const fetchMock = mockFetch([
         { ok: true, body: registrations },
         { ok: true, body: [] },
-        { ok: true, status: 201, body: { id: "r3", boxId: 10, apartmentKey: "Test" } },
+        { ok: true, status: 201, body: { id: "r3", tableId: 10, apartmentKey: "Test" } },
         { ok: true, body: registrations },
         { ok: true, body: [] },
       ]);
@@ -420,9 +420,9 @@ describe("AdminRegistrations", () => {
 
     it("disables occupied tables and appends (occupied) suffix in add dialog", async () => {
       const boxesData = [
-        { id: 1, name: "Linaria", greenhouse: "Kronen", state: "occupied" },
-        { id: 7, name: "Alder", greenhouse: "Kronen", state: "available" },
-        { id: 15, name: "Robin", greenhouse: "Søen", state: "available" },
+        { id: 1, state: "occupied" },
+        { id: 7, state: "available" },
+        { id: 15, state: "available" },
       ];
       const fetchMock = mockFetch([
         { ok: true, body: registrations },
@@ -453,8 +453,6 @@ describe("AdminRegistrations", () => {
     it("sorts available tables before occupied tables in add dialog", async () => {
       const boxesData = Array.from({ length: 29 }, (_, i) => ({
         id: i + 1,
-        name: `Box${i + 1}`,
-        greenhouse: i < 14 ? "Kronen" : "Søen",
         state: i === 0 ? "occupied" : "available",
       }));
       const fetchMock = mockFetch([
@@ -592,9 +590,9 @@ describe("AdminRegistrations", () => {
 
     it("does not disable the current table in move dialog", async () => {
       const boxesData = [
-        { id: 1, name: "Linaria", greenhouse: "Kronen", state: "occupied" },
-        { id: 3, name: "Foxglove", greenhouse: "Kronen", state: "occupied" },
-        { id: 7, name: "Alder", greenhouse: "Kronen", state: "available" },
+        { id: 1, state: "occupied" },
+        { id: 3, state: "occupied" },
+        { id: 7, state: "available" },
       ];
       const fetchMock = mockFetch([
         { ok: true, body: registrations },

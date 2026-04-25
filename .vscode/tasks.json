@@ -4,7 +4,7 @@
     {
       "label": "Start Database",
       "type": "shell",
-      "command": "docker start loppemarked-db || docker run -d --name loppemarked-db -e POSTGRES_DB=loppemarked -e POSTGRES_USER=loppemarked -e POSTGRES_PASSWORD=changeme123 -p 5433:5432 postgres:16",
+      "command": "docker start loppemarked-db || docker run -d --name loppemarked-db -e POSTGRES_DB=loppemarked -e POSTGRES_USER=loppemarked -e POSTGRES_PASSWORD=localdev -p 5433:5432 postgres:16",
       "presentation": {
         "reveal": "silent",
         "panel": "shared"

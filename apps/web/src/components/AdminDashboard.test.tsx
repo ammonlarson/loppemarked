@@ -12,8 +12,8 @@ vi.mock("./AdminRegistrations", () => ({
 vi.mock("./AdminWaitlist", () => ({
   AdminWaitlist: () => <div data-testid="waitlist">Waitlist</div>,
 }));
-vi.mock("./AdminBoxes", () => ({
-  AdminBoxes: () => <div data-testid="boxes">Boxes</div>,
+vi.mock("./AdminTables", () => ({
+  AdminTables: () => <div data-testid="tables">Tables</div>,
 }));
 vi.mock("./AdminMessaging", () => ({
   AdminMessaging: () => <div data-testid="messaging">Messaging</div>,
@@ -40,18 +40,18 @@ describe("AdminDashboard", () => {
 
     expect(screen.getByText("admin.tab.registrations")).toBeDefined();
     expect(screen.getByText("admin.tab.waitlist")).toBeDefined();
-    expect(screen.getByText("admin.tab.boxes")).toBeDefined();
+    expect(screen.getByText("admin.tab.tables")).toBeDefined();
     expect(screen.getByText("admin.tab.messaging")).toBeDefined();
     expect(screen.getByText("admin.tab.settings")).toBeDefined();
     expect(screen.getByText("admin.tab.audit")).toBeDefined();
     expect(screen.getByText("admin.tab.account")).toBeDefined();
   });
 
-  it("shows boxes tab by default", () => {
+  it("shows tables tab by default", () => {
     const onLogout = vi.fn();
     render(<AdminDashboard onLogout={onLogout} />);
 
-    expect(screen.getByTestId("boxes")).toBeDefined();
+    expect(screen.getByTestId("tables")).toBeDefined();
   });
 
   it("switches to account tab on click", () => {

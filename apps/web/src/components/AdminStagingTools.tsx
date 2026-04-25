@@ -16,7 +16,7 @@ export function AdminStagingTools() {
     setMessage(null);
     setFilling(true);
     try {
-      const res = await fetch("/admin/staging/fill-boxes", {
+      const res = await fetch("/admin/staging/fill-tables", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
