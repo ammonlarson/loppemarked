@@ -300,8 +300,8 @@ export function AdminRegistrations() {
 
   async function handleMove() {
     if (!activeDialog || activeDialog.type !== "move") return;
-    const newBoxId = Number(moveNewTableId);
-    if (isNaN(newBoxId) || newBoxId < 1) {
+    const newTableId = Number(moveNewTableId);
+    if (isNaN(newTableId) || newTableId < 1) {
       setMessage({ type: "error", text: t("common.error") });
       return;
     }
@@ -316,7 +316,7 @@ export function AdminRegistrations() {
         credentials: "include",
         body: JSON.stringify({
           registrationId: activeDialog.registration.id,
-          newBoxId,
+          newTableId,
           notification: {
             sendEmail: moveNotification.sendEmail,
             subject: moveNotification.subject || undefined,
@@ -522,7 +522,7 @@ export function AdminRegistrations() {
                 borderRadius: 4,
                 background: colors.sage,
                 color: colors.white,
-                cursor: submitting ? "not-allowed" : "pointer",
+                cursor: submitting ? "progress" : "pointer",
                 fontSize: "0.85rem",
                 fontFamily: fonts.body,
               }}
@@ -538,7 +538,7 @@ export function AdminRegistrations() {
                 border: `1px solid ${colors.borderTan}`,
                 borderRadius: 4,
                 background: colors.white,
-                cursor: submitting ? "not-allowed" : "pointer",
+                cursor: submitting ? "progress" : "pointer",
                 fontSize: "0.85rem",
                 fontFamily: fonts.body,
               }}
@@ -600,7 +600,7 @@ export function AdminRegistrations() {
                 borderRadius: 4,
                 background: colors.sage,
                 color: colors.white,
-                cursor: submitting ? "not-allowed" : "pointer",
+                cursor: submitting ? "progress" : "pointer",
                 fontSize: "0.85rem",
                 fontFamily: fonts.body,
               }}
@@ -616,7 +616,7 @@ export function AdminRegistrations() {
                 border: `1px solid ${colors.borderTan}`,
                 borderRadius: 4,
                 background: colors.white,
-                cursor: submitting ? "not-allowed" : "pointer",
+                cursor: submitting ? "progress" : "pointer",
                 fontSize: "0.85rem",
                 fontFamily: fonts.body,
               }}
@@ -679,7 +679,7 @@ export function AdminRegistrations() {
                 borderRadius: 4,
                 background: colors.dustyRose,
                 color: colors.white,
-                cursor: submitting ? "not-allowed" : "pointer",
+                cursor: submitting ? "progress" : "pointer",
                 fontSize: "0.85rem",
                 fontFamily: fonts.body,
               }}
@@ -695,7 +695,7 @@ export function AdminRegistrations() {
                 border: `1px solid ${colors.borderTan}`,
                 borderRadius: 4,
                 background: colors.white,
-                cursor: submitting ? "not-allowed" : "pointer",
+                cursor: submitting ? "progress" : "pointer",
                 fontSize: "0.85rem",
                 fontFamily: fonts.body,
               }}
