@@ -200,6 +200,11 @@ Alarm notifications are delivered via SNS email subscription (configured per env
 
 A CloudWatch dashboard aggregates Lambda, RDS, and SES metrics.
 
+Dashboards, alarms, and the alerting SNS topic are gated by the
+`enable_observability_alerts` module variable. Production keeps the default
+(`true`); staging sets it to `false` so no dashboard, alarms, or alerting
+SNS topic are provisioned for that environment.
+
 **Drift detection** runs daily via `.github/workflows/drift-detection.yml`. If Terraform detects infrastructure drift, a GitHub issue is created automatically.
 
 **Session cleanup** runs hourly via an EventBridge scheduled rule that invokes the API Lambda. Expired sessions (8-hour TTL) are bulk-deleted to prevent unbounded table growth.
