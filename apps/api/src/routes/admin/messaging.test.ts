@@ -31,17 +31,30 @@ function makeCtx(overrides: Partial<RequestContext> = {}): RequestContext {
   };
 }
 
-function buildQueryMock(rows: unknown[]) {
+interface QueryMock {
+  db: Kysely<Database>;
+  orderByFn: ReturnType<typeof vi.fn>;
+}
+
+function buildQueryMockWithSpies(rows: unknown[]): QueryMock {
   const executeFn = vi.fn().mockResolvedValue(rows);
 
   const queryObj: Record<string, unknown> = {};
   queryObj.execute = executeFn;
   queryObj.where = vi.fn().mockReturnValue(queryObj);
   queryObj.select = vi.fn().mockReturnValue(queryObj);
-  queryObj.orderBy = vi.fn().mockReturnValue(queryObj);
+  const orderByFn = vi.fn().mockReturnValue(queryObj);
+  queryObj.orderBy = orderByFn;
 
   const selectFromFn = vi.fn().mockReturnValue(queryObj);
-  return { selectFrom: selectFromFn } as unknown as Kysely<Database>;
+  return {
+    db: { selectFrom: selectFromFn } as unknown as Kysely<Database>,
+    orderByFn,
+  };
+}
+
+function buildQueryMock(rows: unknown[]): Kysely<Database> {
+  return buildQueryMockWithSpies(rows).db;
 }
 
 describe("handleGetBulkEmailTemplate", () => {
@@ -196,9 +209,6 @@ describe("handleGetRecipients", () => {
     }
   });
 
-  // Regression: ticket #153. The previous implementation joined registrations
-  // to tables with INNER JOIN, which silently dropped active registrations
-  // from both the recipient list and the language bucket counts.
   it("returns active Danish registrations alongside English ones", async () => {
     const mockRows = [
       { email: "self-da@test.com", name: "Self DA", language: "da" },
@@ -220,12 +230,59 @@ describe("handleGetRecipients", () => {
     expect(body.recipients.filter((r) => r.language === "en")).toHaveLength(1);
   });
 
-  it("dedups duplicate emails deterministically by created_at order", async () => {
-    // Same email registered twice: oldest "da" row comes first in SQL order
-    // (queryRecipients orders by created_at asc), so the kept row is "da".
+  it("includes every active-table participant regardless of language", async () => {
     const mockRows = [
-      { email: "user@test.com", name: "User", language: "da" },
+      { email: "en-1@test.com", name: "EN One", language: "en" },
+      { email: "da-1@test.com", name: "DA One", language: "da" },
+      { email: "en-2@test.com", name: "EN Two", language: "en" },
+      { email: "da-2@test.com", name: "DA Two", language: "da" },
+      { email: "en-3@test.com", name: "EN Three", language: "en" },
+    ];
+    const mockDb = buildQueryMock(mockRows);
+
+    const result = await handleGetRecipients(
+      makeCtx({ db: mockDb, body: { audience: "all" } }),
+    );
+
+    const body = result.body as {
+      count: number;
+      recipients: { email: string; language: string }[];
+    };
+    expect(body.count).toBe(5);
+    const englishEmails = body.recipients
+      .filter((r) => r.language === "en")
+      .map((r) => r.email)
+      .sort();
+    expect(englishEmails).toEqual([
+      "en-1@test.com",
+      "en-2@test.com",
+      "en-3@test.com",
+    ]);
+    const danishEmails = body.recipients
+      .filter((r) => r.language === "da")
+      .map((r) => r.email)
+      .sort();
+    expect(danishEmails).toEqual(["da-1@test.com", "da-2@test.com"]);
+  });
+
+  it("requests a deterministic ordering with a stable id tie-breaker", async () => {
+    const { db, orderByFn } = buildQueryMockWithSpies([
+      { email: "a@test.com", name: "A", language: "en" },
+    ]);
+
+    await handleGetRecipients(makeCtx({ db, body: { audience: "all" } }));
+
+    expect(orderByFn).toHaveBeenNthCalledWith(1, "created_at", "desc");
+    expect(orderByFn).toHaveBeenNthCalledWith(2, "id", "desc");
+  });
+
+  it("dedups duplicate emails by keeping the most recent active row", async () => {
+    // queryRecipients orders by created_at desc, so the newer "en"
+    // registration is returned first and wins the dedup over an older
+    // active "da" row sharing the same email.
+    const mockRows = [
       { email: "user@test.com", name: "User", language: "en" },
+      { email: "user@test.com", name: "User", language: "da" },
     ];
     const mockDb = buildQueryMock(mockRows);
 
@@ -238,7 +295,7 @@ describe("handleGetRecipients", () => {
       recipients: { language: string }[];
     };
     expect(body.count).toBe(1);
-    expect(body.recipients[0].language).toBe("da");
+    expect(body.recipients[0].language).toBe("en");
   });
 });
 
