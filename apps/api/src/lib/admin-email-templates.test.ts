@@ -239,12 +239,15 @@ describe("buildAdminNotification — move", () => {
   });
 
   it("renders the table size in the same canonical format as the confirmation email", () => {
-    // Pin parity between the move/remove renderer in admin-email-templates.ts
-    // and the shared confirmation template in email-templates.ts. Both must
-    // route table size through formatTableSize() so admins and recipients see
-    // a consistent string ("80x180 cm", not "2 m" vs "2 meters").
+    // Pin parity between the move renderer in admin-email-templates.ts and
+    // the shared confirmation template in email-templates.ts. Both must
+    // route table size through formatTableSize() so admins and recipients
+    // see a consistent string (no "2 m" vs "2 meters" drift). The first
+    // assertion locks the canonical shape locally; the next two assert
+    // that both renderers emit it for the same tableId.
     const tableId = moveInput.tableId;
     const expectedSize = formatTableSize(getTableById(tableId)!);
+    expect(expectedSize).toBe("150x135 cm");
 
     const move = buildAdminNotification(moveInput);
     const confirmation = buildConfirmationEmail({
@@ -299,6 +302,17 @@ describe("buildAdminNotification — remove", () => {
   it("does not include table details section for remove action", () => {
     const result = buildAdminNotification(removeInput);
     expect(result.bodyHtml).not.toContain("tableDetailsTitle");
+  });
+
+  it("does not render any size string from the catalog (no table-details block)", () => {
+    // The remove notification deliberately omits the table-details block, so
+    // there is no size string to keep aligned with the confirmation email. If
+    // a future change re-introduces a table block here, this test will fail
+    // and force a parity decision (mirror buildConfirmationEmail or stay
+    // size-less).
+    const result = buildAdminNotification(removeInput);
+    const expectedSize = formatTableSize(getTableById(removeInput.tableId)!);
+    expect(result.bodyHtml).not.toContain(expectedSize);
   });
 
   it("includes event contact info", () => {
