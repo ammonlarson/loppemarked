@@ -33,8 +33,8 @@ describe("buildAdminNotification — add", () => {
   it("includes table number and size", () => {
     const result = buildAdminNotification(baseInput);
     expect(result.bodyHtml).toContain("#3");
-    // Table 3 is one of the 60x140 cm clothing-rack tables.
-    expect(result.bodyHtml).toContain("60x140 cm");
+    // Table 3 is the 60x110 cm piece in the leftmost column.
+    expect(result.bodyHtml).toContain("60x110 cm");
   });
 
   it("uses assignment wording instead of self-booking wording", () => {
@@ -234,8 +234,8 @@ describe("buildAdminNotification — move", () => {
   it("includes new table details table with number and size", () => {
     const result = buildAdminNotification(moveInput);
     expect(result.bodyHtml).toContain("#20");
-    // Table 20 is one of the 150x135 cm large near-square tables.
-    expect(result.bodyHtml).toContain("150x135 cm");
+    // Table 20 is one of the 76x210 cm pieces in the right-of-center aisle.
+    expect(result.bodyHtml).toContain("76x210 cm");
   });
 
   it("renders the table size in the same canonical format as the confirmation email", () => {
@@ -247,7 +247,7 @@ describe("buildAdminNotification — move", () => {
     // that both renderers emit it for the same tableId.
     const tableId = moveInput.tableId;
     const expectedSize = formatTableSize(getTableById(tableId)!);
-    expect(expectedSize).toBe("150x135 cm");
+    expect(expectedSize).toBe("76x210 cm");
 
     const move = buildAdminNotification(moveInput);
     const confirmation = buildConfirmationEmail({

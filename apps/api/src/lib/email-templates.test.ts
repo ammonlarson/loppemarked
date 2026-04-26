@@ -67,7 +67,7 @@ describe("buildConfirmationEmail", () => {
     const result = buildConfirmationEmail(baseData);
     const tileMatches = result.bodyHtml.match(/<rect x="\d+(?:\.\d+)?" y="\d+(?:\.\d+)?" width="\d+(?:\.\d+)?" height="\d+(?:\.\d+)?" rx="0\.9"/g);
     expect(tileMatches).not.toBeNull();
-    expect(tileMatches).toHaveLength(23);
+    expect(tileMatches).toHaveLength(24);
   });
 
   it("wraps the SVG in an Outlook-skipping conditional comment", () => {
@@ -103,14 +103,14 @@ describe("buildConfirmationEmail", () => {
   });
 
   it("renders the table size in cm", () => {
-    // Table 3 is one of the 60x140 cm clothing-rack tables.
+    // Table 3 is the 60x110 cm piece in the leftmost column.
     const daResult = buildConfirmationEmail(baseData);
-    expect(daResult.bodyHtml).toContain("60x140 cm");
+    expect(daResult.bodyHtml).toContain("60x110 cm");
 
-    // Table 23 is one of the standard 80x180 cm tables along the right wall.
-    const enResult = buildConfirmationEmail({ ...baseData, tableId: 23, language: "en" });
+    // Table 24 is one of the standard 80x180 cm tables along the right wall.
+    const enResult = buildConfirmationEmail({ ...baseData, tableId: 24, language: "en" });
     expect(enResult.bodyHtml).toContain("80x180 cm");
-    expect(enResult.bodyHtml).toContain("#23");
+    expect(enResult.bodyHtml).toContain("#24");
   });
 
   it("uses brand green and salmon colors", () => {

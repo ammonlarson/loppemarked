@@ -90,7 +90,7 @@ The schema is managed as a single Kysely baseline migration in `src/db/migration
 
 - One active occupant per table (partial unique index)
 - Table state restricted to: available, occupied, reserved
-- Table id constrained to the visible Fælledhuset catalog (1–24, with 22 skipped)
+- Table id constrained to the visible Fælledhuset catalog (contiguous 1–24)
 - Audit events are immutable (UPDATE/DELETE blocked by trigger)
 - Waitlist FIFO ordering by `created_at`
 
