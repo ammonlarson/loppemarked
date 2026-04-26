@@ -586,7 +586,7 @@ describe("AdminRegistrations", () => {
 
       const options = Array.from(boxSelect.options);
       expect(options[0].textContent).toBe("admin.registrations.selectTable");
-      expect(options[23].textContent).toBe("Table #23 · 80x180 cm");
+      expect(options[24].textContent).toBe("Table #24 · 80x180 cm");
     });
 
     it("does not disable the current table in move dialog", async () => {

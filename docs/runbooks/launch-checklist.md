@@ -41,7 +41,7 @@ Complete all checks in the staging environment before proceeding to production.
 SELECT COUNT(*) AS total_tables,
        COUNT(*) FILTER (WHERE state = 'available') AS available
 FROM tables;
--- Result: total_tables=23, available=23
+-- Result: total_tables=24, available=24
 
 SELECT opening_datetime AT TIME ZONE 'Europe/Copenhagen' AS opens_at
 FROM system_settings;

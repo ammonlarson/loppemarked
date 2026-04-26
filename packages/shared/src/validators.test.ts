@@ -263,19 +263,19 @@ describe("validateTableId", () => {
   it("accepts catalog ids", () => {
     expect(validateTableId(1)).toEqual({ valid: true });
     expect(validateTableId(15)).toEqual({ valid: true });
-    expect(validateTableId(23)).toEqual({ valid: true });
+    expect(validateTableId(24)).toEqual({ valid: true });
   });
 
   it("rejects 0", () => {
     expect(validateTableId(0).valid).toBe(false);
   });
 
-  it("rejects ids outside the catalog (e.g. 24)", () => {
-    expect(validateTableId(24).valid).toBe(false);
+  it("rejects ids outside the catalog (e.g. 25)", () => {
+    expect(validateTableId(25).valid).toBe(false);
   });
 
   it("rejects ids beyond the catalog max", () => {
-    expect(validateTableId(25).valid).toBe(false);
+    expect(validateTableId(99).valid).toBe(false);
   });
 
   it("rejects non-integers", () => {

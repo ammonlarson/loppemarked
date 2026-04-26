@@ -311,7 +311,7 @@ erDiagram
 ### Key Constraints
 
 - **One active occupant per table** — Partial unique index on `table_id` where `status = 'active'`.
-- **Table id catalog** — Check constraint limits `tables.id` to the visible Fælledhuset catalog (1–24, with 22 skipped).
+- **Table id catalog** — Check constraint limits `tables.id` to the visible Fælledhuset catalog (contiguous 1–24).
 - **Immutable audit trail** — Database trigger prevents UPDATE/DELETE on `audit_events`.
 - **Table states** — Enum constraint: `available`, `occupied`, `reserved`.
 - **FIFO waitlist** — Ordered by `created_at`; duplicate apartment preserves earliest timestamp.
