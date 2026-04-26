@@ -4,6 +4,7 @@ import {
   EVENT_CONTACT,
   TABLE_CATALOG,
   TABLE_MAP_VIEWBOX,
+  formatTableSize,
   getTableById,
 } from "@loppemarked/shared";
 import type { Language, TableCatalogEntry } from "@loppemarked/shared";
@@ -64,14 +65,14 @@ interface TableSummary {
   size: string;
 }
 
-function describeTable(id: number, t: (typeof translations)["da" | "en"]): TableSummary {
+function describeTable(id: number): TableSummary {
   const table = getTableById(id);
   if (!table) {
     return { number: `#${id}`, size: "—" };
   }
   return {
     number: `#${table.number}`,
-    size: t.tableSizeValue(table.sizeMeters),
+    size: formatTableSize(table),
   };
 }
 
@@ -102,7 +103,6 @@ const translations = {
       `Plantegning over Fælledhuset med bord ${tableNumber} fremhævet.`,
     tableLocationStageLabel: "Scene",
     tableLocationEntranceLabel: "Indgang",
-    tableSizeValue: (meters: number) => `${meters} meter`,
     guidelinesTitle: "Retningslinjer for sælgere",
     guidelines: [
       "Mød op i god tid, så du er klar ved dit bord, inden markedet åbner. Opstilling begynder kl. 11.00.",
@@ -165,7 +165,6 @@ const translations = {
       `Floor plan of Fælledhuset with table ${tableNumber} highlighted.`,
     tableLocationStageLabel: "Stage",
     tableLocationEntranceLabel: "Entrance",
-    tableSizeValue: (meters: number) => `${meters} meters`,
     guidelinesTitle: "Seller Guidelines",
     guidelines: [
       "Arrive with enough time to set up your table before the market opens. Setup begins at 11:00 AM.",
@@ -305,7 +304,7 @@ export function buildConfirmationEmail(data: ConfirmationEmailData): EmailConten
   const t = translations[data.language];
   const flow: ConfirmationFlow = data.flow ?? "self";
   const introText = pickIntro(flow, t);
-  const table = describeTable(data.tableId, t);
+  const table = describeTable(data.tableId);
   const bookedTableEntry = getTableById(data.tableId);
   const locationCellHtml = buildTableLocationCellHtml(
     bookedTableEntry,
@@ -315,7 +314,7 @@ export function buildConfirmationEmail(data: ConfirmationEmailData): EmailConten
 
   const switchedTable =
     data.switchedFromTableId != null
-      ? describeTable(data.switchedFromTableId, t)
+      ? describeTable(data.switchedFromTableId)
       : null;
 
   const switchHtml = switchedTable
@@ -413,7 +412,7 @@ export function buildCancellationConfirmationEmail(
   data: CancellationConfirmationEmailData,
 ): EmailContent {
   const t = translations[data.language];
-  const table = describeTable(data.tableId, t);
+  const table = describeTable(data.tableId);
   const subject = t.cancellationConfirmationSubject;
 
   const bodyHtml = `<!DOCTYPE html>
