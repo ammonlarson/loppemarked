@@ -4,6 +4,7 @@ import {
   EVENT_CONTACT,
   TABLE_CATALOG,
   TABLE_MAP_VIEWBOX,
+  formatTableSize,
   getTableById,
 } from "@loppemarked/shared";
 import type { Language, TableCatalogEntry } from "@loppemarked/shared";
@@ -17,6 +18,14 @@ export interface ConfirmationEmailData {
   tableId: number;
   switchedFromTableId?: number;
   cancellationUrl?: string;
+  /**
+   * When true (and no `cancellationUrl` is supplied), render the cancel
+   * section with a placeholder note instead of a clickable link. Used by the
+   * admin preview API: the registration does not yet exist when the admin
+   * opens the composer, so no real token can be minted, but we still want
+   * the preview to show that a cancel link will appear in the sent email.
+   */
+  cancellationLinkPlaceholder?: boolean;
   /**
    * Which flow produced this booking. Drives the intro wording so admin-driven
    * flows say "you have been assigned a table" rather than "you have booked".
@@ -56,14 +65,14 @@ interface TableSummary {
   size: string;
 }
 
-function describeTable(id: number, t: (typeof translations)["da" | "en"]): TableSummary {
+function describeTable(id: number): TableSummary {
   const table = getTableById(id);
   if (!table) {
     return { number: `#${id}`, size: "—" };
   }
   return {
     number: `#${table.number}`,
-    size: t.tableSizeValue(table.sizeMeters),
+    size: formatTableSize(table),
   };
 }
 
@@ -94,7 +103,6 @@ const translations = {
       `Plantegning over Fælledhuset med bord ${tableNumber} fremhævet.`,
     tableLocationStageLabel: "Scene",
     tableLocationEntranceLabel: "Indgang",
-    tableSizeValue: (meters: number) => `${meters} meter`,
     guidelinesTitle: "Retningslinjer for sælgere",
     guidelines: [
       "Mød op i god tid, så du er klar ved dit bord, inden markedet åbner. Opstilling begynder kl. 11.00.",
@@ -114,6 +122,8 @@ const translations = {
     cancelFallbackLabel: "Virker knappen ikke? Kopier dette link:",
     cancelNote:
       "Linket er personligt og må ikke deles. Når du har afmeldt, vil arrangørerne gennemgå bordet, før det eventuelt frigives igen.",
+    cancelPlaceholderNote:
+      "Et personligt afmeldingslink til modtageren indsættes her, når e-mailen sendes.",
     closing: "Vi glæder os til at se dig i Fælledhuset!",
     teamSignature: "UN17 Village Loppemarked-teamet",
     cancellationConfirmationSubject:
@@ -155,7 +165,6 @@ const translations = {
       `Floor plan of Fælledhuset with table ${tableNumber} highlighted.`,
     tableLocationStageLabel: "Stage",
     tableLocationEntranceLabel: "Entrance",
-    tableSizeValue: (meters: number) => `${meters} meters`,
     guidelinesTitle: "Seller Guidelines",
     guidelines: [
       "Arrive with enough time to set up your table before the market opens. Setup begins at 11:00 AM.",
@@ -176,6 +185,8 @@ const translations = {
     cancelFallbackLabel: "Button not working? Copy this link:",
     cancelNote:
       "This link is personal — please don't share it. After you cancel, the organizers will review the table before it may be released again.",
+    cancelPlaceholderNote:
+      "A personal cancellation link for the recipient will be inserted here when the email is sent.",
     closing: "We look forward to seeing you at Fælledhuset!",
     teamSignature: "The UN17 Village Loppemarked Team",
     cancellationConfirmationSubject:
@@ -293,7 +304,7 @@ export function buildConfirmationEmail(data: ConfirmationEmailData): EmailConten
   const t = translations[data.language];
   const flow: ConfirmationFlow = data.flow ?? "self";
   const introText = pickIntro(flow, t);
-  const table = describeTable(data.tableId, t);
+  const table = describeTable(data.tableId);
   const bookedTableEntry = getTableById(data.tableId);
   const locationCellHtml = buildTableLocationCellHtml(
     bookedTableEntry,
@@ -303,7 +314,7 @@ export function buildConfirmationEmail(data: ConfirmationEmailData): EmailConten
 
   const switchedTable =
     data.switchedFromTableId != null
-      ? describeTable(data.switchedFromTableId, t)
+      ? describeTable(data.switchedFromTableId)
       : null;
 
   const switchHtml = switchedTable
@@ -316,15 +327,21 @@ export function buildConfirmationEmail(data: ConfirmationEmailData): EmailConten
     .map((g) => `<li style="margin-bottom: 6px;">${escapeHtml(g)}</li>`)
     .join("");
 
-  const cancellationHtml = data.cancellationUrl
-    ? `<h2 style="color: ${BRAND.greenDark}; font-size: 18px; border-bottom: 2px solid ${BRAND.greenSoft}; padding-bottom: 8px; margin-top: 28px;">${escapeHtml(t.cancelTitle)}</h2>
+  let cancellationHtml = "";
+  if (data.cancellationUrl) {
+    cancellationHtml = `<h2 style="color: ${BRAND.greenDark}; font-size: 18px; border-bottom: 2px solid ${BRAND.greenSoft}; padding-bottom: 8px; margin-top: 28px;">${escapeHtml(t.cancelTitle)}</h2>
       <p>${escapeHtml(t.cancelIntro)}</p>
       <p style="margin: 16px 0;">
         <a href="${escapeHtml(data.cancellationUrl)}" style="display: inline-block; background: ${BRAND.salmon}; color: ${BRAND.cream}; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-weight: 600;">${escapeHtml(t.cancelCtaLabel)}</a>
       </p>
       <p style="font-size: 13px; color: ${BRAND.ink}; margin-top: 12px;">${escapeHtml(t.cancelFallbackLabel)}<br><span style="word-break: break-all; color: ${BRAND.salmonDark};">${escapeHtml(data.cancellationUrl)}</span></p>
-      <p style="font-size: 12px; color: ${BRAND.ink}; opacity: 0.8; margin-top: 12px;">${escapeHtml(t.cancelNote)}</p>`
-    : "";
+      <p style="font-size: 12px; color: ${BRAND.ink}; opacity: 0.8; margin-top: 12px;">${escapeHtml(t.cancelNote)}</p>`;
+  } else if (data.cancellationLinkPlaceholder) {
+    cancellationHtml = `<h2 style="color: ${BRAND.greenDark}; font-size: 18px; border-bottom: 2px solid ${BRAND.greenSoft}; padding-bottom: 8px; margin-top: 28px;">${escapeHtml(t.cancelTitle)}</h2>
+      <p>${escapeHtml(t.cancelIntro)}</p>
+      <p style="background: ${BRAND.greenSoft}; border-left: 4px solid ${BRAND.greenDark}; padding: 10px 14px; margin: 16px 0; border-radius: 4px; font-size: 13px; color: ${BRAND.ink};"><em>${escapeHtml(t.cancelPlaceholderNote)}</em></p>
+      <p style="font-size: 12px; color: ${BRAND.ink}; opacity: 0.8; margin-top: 12px;">${escapeHtml(t.cancelNote)}</p>`;
+  }
 
   const bodyHtml = `<!DOCTYPE html>
 <html lang="${data.language}">
@@ -395,7 +412,7 @@ export function buildCancellationConfirmationEmail(
   data: CancellationConfirmationEmailData,
 ): EmailContent {
   const t = translations[data.language];
-  const table = describeTable(data.tableId, t);
+  const table = describeTable(data.tableId);
   const subject = t.cancellationConfirmationSubject;
 
   const bodyHtml = `<!DOCTYPE html>

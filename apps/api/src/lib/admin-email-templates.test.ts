@@ -31,7 +31,8 @@ describe("buildAdminNotification — add", () => {
   it("includes table number and size", () => {
     const result = buildAdminNotification(baseInput);
     expect(result.bodyHtml).toContain("#3");
-    expect(result.bodyHtml).toContain("2 meter");
+    // Table 3 is one of the 60x140 cm clothing-rack tables.
+    expect(result.bodyHtml).toContain("60x140 cm");
   });
 
   it("uses assignment wording instead of self-booking wording", () => {
@@ -61,12 +62,36 @@ describe("buildAdminNotification — add", () => {
     expect(enResult.bodyHtml).toContain("pricing");
   });
 
-  it("does not include a cancellation link", () => {
+  it("does not include a cancellation link by default", () => {
     const daResult = buildAdminNotification(baseInput);
     expect(daResult.bodyHtml).not.toContain("Afmeld din booking");
 
     const enResult = buildAdminNotification({ ...baseInput, language: "en" });
     expect(enResult.bodyHtml).not.toContain("Cancel my booking");
+  });
+
+  it("renders a placeholder cancel section when cancellationLinkPlaceholder is true", () => {
+    const daResult = buildAdminNotification({
+      ...baseInput,
+      cancellationLinkPlaceholder: true,
+    });
+    expect(daResult.bodyHtml).toContain("Afmeld dit bord");
+    expect(daResult.bodyHtml).toContain(
+      "Et personligt afmeldingslink til modtageren indsættes her",
+    );
+    expect(daResult.bodyHtml).not.toContain("Afmeld din booking</a>");
+  });
+
+  it("renders a live cancel link when cancellationUrl is provided", () => {
+    const daResult = buildAdminNotification({
+      ...baseInput,
+      cancellationUrl: "https://example.test/cancel?token=admin",
+    });
+    expect(daResult.bodyHtml).toContain("Afmeld din booking");
+    expect(daResult.bodyHtml).toContain("https://example.test/cancel?token=admin");
+    expect(daResult.bodyHtml).not.toContain(
+      "Et personligt afmeldingslink til modtageren indsættes her",
+    );
   });
 
   it("does not include price or DKK", () => {
@@ -144,9 +169,29 @@ describe("buildAdminNotification — waitlist_assign", () => {
     expect(daResult.bodyHtml).toContain("Retningslinjer for sælgere");
   });
 
-  it("does not include a cancellation link", () => {
+  it("does not include a cancellation link by default", () => {
     const daResult = buildAdminNotification(waitlistInput);
     expect(daResult.bodyHtml).not.toContain("Afmeld din booking");
+  });
+
+  it("renders a live cancel link when cancellationUrl is provided", () => {
+    const daResult = buildAdminNotification({
+      ...waitlistInput,
+      cancellationUrl: "https://example.test/cancel?token=wl-admin",
+    });
+    expect(daResult.bodyHtml).toContain("Afmeld din booking");
+    expect(daResult.bodyHtml).toContain("https://example.test/cancel?token=wl-admin");
+  });
+
+  it("renders a placeholder cancel section when cancellationLinkPlaceholder is true", () => {
+    const daResult = buildAdminNotification({
+      ...waitlistInput,
+      cancellationLinkPlaceholder: true,
+    });
+    expect(daResult.bodyHtml).toContain("Afmeld dit bord");
+    expect(daResult.bodyHtml).toContain(
+      "Et personligt afmeldingslink til modtageren indsættes her",
+    );
   });
 });
 
@@ -187,7 +232,8 @@ describe("buildAdminNotification — move", () => {
   it("includes new table details table with number and size", () => {
     const result = buildAdminNotification(moveInput);
     expect(result.bodyHtml).toContain("#20");
-    expect(result.bodyHtml).toContain("2 m");
+    // Table 20 is one of the 150x135 cm large near-square tables.
+    expect(result.bodyHtml).toContain("150x135 cm");
   });
 
   it("includes event contact info", () => {

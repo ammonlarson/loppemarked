@@ -102,13 +102,14 @@ describe("buildConfirmationEmail", () => {
     expect(result.bodyHtml).toContain("Fælledhuset");
   });
 
-  it("renders the table size", () => {
+  it("renders the table size in cm", () => {
+    // Table 3 is one of the 60x140 cm clothing-rack tables.
     const daResult = buildConfirmationEmail(baseData);
-    expect(daResult.bodyHtml).toContain("2 meter");
+    expect(daResult.bodyHtml).toContain("60x140 cm");
 
-    // Every visible table on the simplified Fælledhuset map is 2 m.
+    // Table 23 is one of the standard 80x180 cm tables along the right wall.
     const enResult = buildConfirmationEmail({ ...baseData, tableId: 23, language: "en" });
-    expect(enResult.bodyHtml).toContain("2 meters");
+    expect(enResult.bodyHtml).toContain("80x180 cm");
     expect(enResult.bodyHtml).toContain("#23");
   });
 
@@ -286,6 +287,45 @@ describe("buildConfirmationEmail", () => {
     });
     expect(result.bodyHtml).not.toContain("<script>alert(1)</script>");
     expect(result.bodyHtml).toContain("&lt;script&gt;");
+  });
+
+  it("renders a placeholder cancel section when cancellationLinkPlaceholder is true and no URL is set", () => {
+    const daResult = buildConfirmationEmail({
+      ...baseData,
+      cancellationLinkPlaceholder: true,
+    });
+    expect(daResult.bodyHtml).toContain("Afmeld dit bord");
+    expect(daResult.bodyHtml).toContain(
+      "Et personligt afmeldingslink til modtageren indsættes her",
+    );
+    // No clickable button or URL leaks into the placeholder rendering.
+    expect(daResult.bodyHtml).not.toContain("href=\"https://");
+    expect(daResult.bodyHtml).not.toContain("Afmeld din booking</a>");
+
+    const enResult = buildConfirmationEmail({
+      ...baseData,
+      language: "en",
+      cancellationLinkPlaceholder: true,
+    });
+    expect(enResult.bodyHtml).toContain("Cancel your booking");
+    expect(enResult.bodyHtml).toContain(
+      "A personal cancellation link for the recipient will be inserted",
+    );
+    expect(enResult.bodyHtml).not.toContain("Cancel my booking</a>");
+  });
+
+  it("prefers a real cancellationUrl over the placeholder when both are set", () => {
+    const result = buildConfirmationEmail({
+      ...baseData,
+      language: "en",
+      cancellationUrl: "https://example.test/cancel?token=real",
+      cancellationLinkPlaceholder: true,
+    });
+    expect(result.bodyHtml).toContain("https://example.test/cancel?token=real");
+    expect(result.bodyHtml).toContain("Cancel my booking");
+    expect(result.bodyHtml).not.toContain(
+      "A personal cancellation link for the recipient will be inserted",
+    );
   });
 
   it("uses the self-flow intro by default", () => {
