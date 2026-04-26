@@ -1,6 +1,8 @@
+import { formatTableSize, getTableById } from "@loppemarked/shared";
 import { describe, expect, it } from "vitest";
 import { buildAdminNotification, buildBulkEmailTemplate, wrapEmailHtml } from "./admin-email-templates.js";
 import type { NotificationPreviewInput } from "./admin-email-templates.js";
+import { buildConfirmationEmail } from "./email-templates.js";
 
 const baseInput: NotificationPreviewInput = {
   action: "add",
@@ -234,6 +236,26 @@ describe("buildAdminNotification — move", () => {
     expect(result.bodyHtml).toContain("#20");
     // Table 20 is one of the 150x135 cm large near-square tables.
     expect(result.bodyHtml).toContain("150x135 cm");
+  });
+
+  it("renders the table size in the same canonical format as the confirmation email", () => {
+    // Pin parity between the move/remove renderer in admin-email-templates.ts
+    // and the shared confirmation template in email-templates.ts. Both must
+    // route table size through formatTableSize() so admins and recipients see
+    // a consistent string ("80x180 cm", not "2 m" vs "2 meters").
+    const tableId = moveInput.tableId;
+    const expectedSize = formatTableSize(getTableById(tableId)!);
+
+    const move = buildAdminNotification(moveInput);
+    const confirmation = buildConfirmationEmail({
+      recipientName: moveInput.recipientName,
+      recipientEmail: moveInput.recipientEmail,
+      language: moveInput.language,
+      tableId,
+    });
+
+    expect(move.bodyHtml).toContain(expectedSize);
+    expect(confirmation.bodyHtml).toContain(expectedSize);
   });
 
   it("includes event contact info", () => {
