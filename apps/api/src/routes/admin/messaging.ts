@@ -15,17 +15,19 @@ interface Recipient {
 }
 
 async function queryRecipients(ctx: RequestContext): Promise<Recipient[]> {
-  // Read directly from registrations: there is no filter that needs the
-  // tables row, and an INNER JOIN here would silently drop any active
-  // registration whose table_id is missing from the tables view.
-  // Order by created_at so the dedup-by-email below is deterministic when
-  // a single email holds both a "da" and an "en" registration — without
-  // this the language bucket counts depend on Postgres' row ordering.
+  // Read directly from registrations: every active registration is a valid
+  // recipient regardless of which table row it points to. Order newest-first
+  // so that when a single email holds more than one active registration
+  // across languages, the dedup loop below keeps the most recent row — that
+  // reflects the user's current language preference and prevents the older
+  // language entry from masking a newer one. The secondary `id desc` ordering
+  // keeps the choice deterministic when two rows share a `created_at`.
   const rows = await ctx.db
     .selectFrom("registrations")
     .select(["email", "name", "language"])
     .where("status", "=", "active")
-    .orderBy("created_at", "asc")
+    .orderBy("created_at", "desc")
+    .orderBy("id", "desc")
     .execute();
 
   const seen = new Set<string>();
