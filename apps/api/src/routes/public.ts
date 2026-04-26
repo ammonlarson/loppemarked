@@ -633,6 +633,18 @@ export async function handleWaitlistPosition(ctx: RequestContext): Promise<Route
 
   const position = await getWaitlistPosition(ctx, apartmentKey);
 
+  // The two reads above run outside a transaction, so an admin
+  // remove/assign between them can leave `entry` set while
+  // `getWaitlistPosition` returns the `0` "no longer waiting" sentinel.
+  // Collapse that race into the same shape as the no-entry branch so the
+  // sentinel never escapes the API contract.
+  if (position === 0) {
+    return {
+      statusCode: 200,
+      body: { onWaitlist: false, position: null },
+    };
+  }
+
   return {
     statusCode: 200,
     body: {

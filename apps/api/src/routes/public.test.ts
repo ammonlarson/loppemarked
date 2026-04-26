@@ -974,6 +974,57 @@ describe("handleWaitlistPosition", () => {
     expect(body.onWaitlist).toBe(false);
     expect(body.position).toBeNull();
   });
+
+  // Regression for the race where an admin removes the entry between the
+  // handler's existence check and getWaitlistPosition's lookup. The second
+  // read returns nothing → position sentinel 0. The handler must collapse
+  // that into the no-entry response so position: 0 never escapes the API.
+  it("returns onWaitlist false when entry vanishes between reads", async () => {
+    const mockEntry = { id: "wl-1", created_at: "2026-04-01T10:00:00Z" };
+
+    let selectCallCount = 0;
+    const mockDb = {
+      selectFrom: vi.fn().mockImplementation((table: string) => {
+        if (table !== "waitlist_entries") return {};
+        selectCallCount++;
+        // Call 1: handler's existence check — entry still present.
+        if (selectCallCount === 1) {
+          return {
+            select: vi.fn().mockReturnValue({
+              where: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                  executeTakeFirst: vi.fn().mockResolvedValue(mockEntry),
+                }),
+              }),
+            }),
+          };
+        }
+        // Call 2: getWaitlistPosition's first query — entry is gone, so
+        // it returns the 0 sentinel without ever running the count query.
+        return {
+          select: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              where: vi.fn().mockReturnValue({
+                executeTakeFirst: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+          }),
+        };
+      }),
+    } as unknown as Kysely<Database>;
+
+    const res = await handleWaitlistPosition(
+      makeCtx({
+        db: mockDb,
+        params: { apartmentKey: "else alfelts vej 130" },
+      }),
+    );
+    expect(res.statusCode).toBe(200);
+    const body = res.body as Record<string, unknown>;
+    expect(body.onWaitlist).toBe(false);
+    expect(body.position).toBeNull();
+    expect(body).not.toHaveProperty("joinedAt");
+  });
 });
 
 describe("handlePublicHallSummary", () => {
