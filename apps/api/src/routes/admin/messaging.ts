@@ -15,10 +15,17 @@ interface Recipient {
 }
 
 async function queryRecipients(ctx: RequestContext): Promise<Recipient[]> {
+  // Read directly from registrations: there is no filter that needs the
+  // tables row, and an INNER JOIN here would silently drop any active
+  // registration whose table_id is missing from the tables view.
+  // Order by created_at so the dedup-by-email below is deterministic when
+  // a single email holds both a "da" and an "en" registration — without
+  // this the language bucket counts depend on Postgres' row ordering.
   const rows = await ctx.db
     .selectFrom("registrations")
     .select(["email", "name", "language"])
     .where("status", "=", "active")
+    .orderBy("created_at", "asc")
     .execute();
 
   const seen = new Set<string>();

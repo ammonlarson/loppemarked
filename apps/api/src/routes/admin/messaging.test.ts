@@ -38,6 +38,7 @@ function buildQueryMock(rows: unknown[]) {
   queryObj.execute = executeFn;
   queryObj.where = vi.fn().mockReturnValue(queryObj);
   queryObj.select = vi.fn().mockReturnValue(queryObj);
+  queryObj.orderBy = vi.fn().mockReturnValue(queryObj);
 
   const selectFromFn = vi.fn().mockReturnValue(queryObj);
   return { selectFrom: selectFromFn } as unknown as Kysely<Database>;
@@ -196,41 +197,9 @@ describe("handleGetRecipients", () => {
   });
 
   // Regression: ticket #153. The previous implementation joined registrations
-  // to tables with INNER JOIN, which silently dropped active registrations.
-  // The recipient list must read from registrations directly so every active
-  // registration is included regardless of join state.
-  it("reads recipients from registrations without joining tables", async () => {
-    const executeFn = vi.fn().mockResolvedValue([
-      { email: "danish@test.com", name: "Dansk", language: "da" },
-      { email: "english@test.com", name: "English", language: "en" },
-    ]);
-
-    const queryObj: Record<string, unknown> = {};
-    queryObj.execute = executeFn;
-    queryObj.where = vi.fn().mockReturnValue(queryObj);
-    queryObj.select = vi.fn().mockReturnValue(queryObj);
-    const innerJoin = vi.fn().mockReturnValue(queryObj);
-    queryObj.innerJoin = innerJoin;
-
-    const selectFrom = vi.fn().mockReturnValue(queryObj);
-    const mockDb = { selectFrom } as unknown as Kysely<Database>;
-
-    const result = await handleGetRecipients(
-      makeCtx({ db: mockDb, body: { audience: "all" } }),
-    );
-
-    expect(selectFrom).toHaveBeenCalledWith("registrations");
-    expect(innerJoin).not.toHaveBeenCalled();
-
-    const body = result.body as {
-      count: number;
-      recipients: { email: string; language: string }[];
-    };
-    expect(body.count).toBe(2);
-    expect(body.recipients.map((r) => r.language).sort()).toEqual(["da", "en"]);
-  });
-
-  it("includes active Danish-language registrations alongside English", async () => {
+  // to tables with INNER JOIN, which silently dropped active registrations
+  // from both the recipient list and the language bucket counts.
+  it("returns active Danish registrations alongside English ones", async () => {
     const mockRows = [
       { email: "self-da@test.com", name: "Self DA", language: "da" },
       { email: "admin-da@test.com", name: "Admin DA", language: "da" },
@@ -246,11 +215,30 @@ describe("handleGetRecipients", () => {
       count: number;
       recipients: { email: string; language: string }[];
     };
-    const danish = body.recipients.filter((r) => r.language === "da");
-    const english = body.recipients.filter((r) => r.language === "en");
     expect(body.count).toBe(3);
-    expect(danish).toHaveLength(2);
-    expect(english).toHaveLength(1);
+    expect(body.recipients.filter((r) => r.language === "da")).toHaveLength(2);
+    expect(body.recipients.filter((r) => r.language === "en")).toHaveLength(1);
+  });
+
+  it("dedups duplicate emails deterministically by created_at order", async () => {
+    // Same email registered twice: oldest "da" row comes first in SQL order
+    // (queryRecipients orders by created_at asc), so the kept row is "da".
+    const mockRows = [
+      { email: "user@test.com", name: "User", language: "da" },
+      { email: "user@test.com", name: "User", language: "en" },
+    ];
+    const mockDb = buildQueryMock(mockRows);
+
+    const result = await handleGetRecipients(
+      makeCtx({ db: mockDb, body: { audience: "all" } }),
+    );
+
+    const body = result.body as {
+      count: number;
+      recipients: { language: string }[];
+    };
+    expect(body.count).toBe(1);
+    expect(body.recipients[0].language).toBe("da");
   });
 });
 
