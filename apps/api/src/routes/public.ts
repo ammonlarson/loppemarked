@@ -598,6 +598,13 @@ export async function handleJoinWaitlist(ctx: RequestContext): Promise<RouteResp
     }
   }
 
+  await notifyAdmins(ctx.db, {
+    type: "user_waitlist_join",
+    userName: body.name!,
+    userEmail: body.email!,
+    position,
+  });
+
   return {
     statusCode: 201,
     body: {

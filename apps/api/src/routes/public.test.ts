@@ -21,6 +21,7 @@ import {
   handleWaitlistPosition,
   maskName,
 } from "./public.js";
+import { notifyAdmins } from "../lib/admin-ops-notifications.js";
 import { hashCancellationToken } from "../lib/cancellation-tokens.js";
 
 function makeCtx(overrides: Partial<RequestContext> = {}): RequestContext {
@@ -594,6 +595,7 @@ describe("handleJoinWaitlist (happy path)", () => {
   beforeEach(() => {
     const mockSes = { send: vi.fn().mockResolvedValue({}) };
     setSesClient(mockSes as never);
+    vi.mocked(notifyAdmins).mockClear();
   });
 
   it("creates a new waitlist entry when no tables available and apartment not on waitlist", async () => {
@@ -772,6 +774,80 @@ describe("handleJoinWaitlist (happy path)", () => {
       (call: string[]) => call[0] === "emails",
     );
     expect(emailCalls.length).toBe(0);
+  });
+
+  it("notifies admins when a new waitlist entry is created", async () => {
+    const mockDb = makeMockDbForWaitlist({
+      availableCount: 0,
+      existingEntry: undefined,
+      newEntryId: "wl-1",
+      positionEntryCreatedAt: "2026-03-01T10:00:00Z",
+      aheadCount: 1,
+    });
+
+    await handleJoinWaitlist(makeCtx({ db: mockDb, body: validWaitlistBody }));
+
+    expect(notifyAdmins).toHaveBeenCalledTimes(1);
+    expect(notifyAdmins).toHaveBeenCalledWith(mockDb, expect.objectContaining({
+      type: "user_waitlist_join",
+      userName: "Alice",
+      userEmail: "alice@example.com",
+      position: 2,
+    }));
+  });
+
+  it("notifies admins with null position when entry is processed before position lookup", async () => {
+    const mockDb = makeMockDbForWaitlist({
+      availableCount: 0,
+      existingEntry: undefined,
+      newEntryId: "wl-raced",
+      positionEntryCreatedAt: undefined,
+    });
+
+    await handleJoinWaitlist(makeCtx({ db: mockDb, body: validWaitlistBody }));
+
+    expect(notifyAdmins).toHaveBeenCalledTimes(1);
+    expect(notifyAdmins).toHaveBeenCalledWith(mockDb, expect.objectContaining({
+      type: "user_waitlist_join",
+      position: null,
+    }));
+  });
+
+  it("does not notify admins when apartment is already on the waitlist", async () => {
+    const existingCreatedAt = "2026-03-01T08:00:00Z";
+    const mockDb = makeMockDbForWaitlist({
+      availableCount: 0,
+      existingEntry: { id: "wl-existing", created_at: existingCreatedAt },
+      positionEntryCreatedAt: existingCreatedAt,
+      aheadCount: 2,
+    });
+
+    await handleJoinWaitlist(makeCtx({ db: mockDb, body: validWaitlistBody }));
+
+    expect(notifyAdmins).not.toHaveBeenCalled();
+  });
+
+  it("does not notify admins when tables are still available", async () => {
+    const mockDb = makeMockDbForWaitlist({ availableCount: 5 });
+
+    await expect(
+      handleJoinWaitlist(makeCtx({ db: mockDb, body: validWaitlistBody })),
+    ).rejects.toMatchObject({ code: "TABLES_AVAILABLE" });
+
+    expect(notifyAdmins).not.toHaveBeenCalled();
+  });
+
+  it("does not notify admins when apartment already has a registration", async () => {
+    const mockDb = makeMockDbForWaitlist({
+      availableCount: 0,
+      existingRegistrationId: "reg-existing",
+    });
+
+    await expect(
+      handleJoinWaitlist(makeCtx({ db: mockDb, body: validWaitlistBody })),
+    ).rejects.toMatchObject({ code: "APARTMENT_HAS_REGISTRATION" });
+
+    expect(notifyAdmins).not.toHaveBeenCalled();
   });
 });
 
