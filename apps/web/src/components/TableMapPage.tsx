@@ -91,14 +91,22 @@ export function TableMapPage({ onBack }: TableMapPageProps) {
         &larr; {t("map.back")}
       </button>
 
-      <header className="flea-paper-card flea-map__header">
-        <h2 className="flea-map__title">{t("table.pageTitle")}</h2>
-        <p className="flea-map__intro">{t("table.pageIntro")}</p>
-      </header>
+      {!hasAvailable && (
+        <FullCapacityNotice onJoinWaitlist={() => setPageView("waitlist")} />
+      )}
 
-      <SellerNotes />
+      {hasAvailable && (
+        <>
+          <header className="flea-paper-card flea-map__header">
+            <h2 className="flea-map__title">{t("table.pageTitle")}</h2>
+            <p className="flea-map__intro">{t("table.pageIntro")}</p>
+          </header>
 
-      <hr className="flea-map__divider" aria-hidden="true" />
+          <SellerNotes />
+
+          <hr className="flea-map__divider" aria-hidden="true" />
+        </>
+      )}
 
       <div className="flea-map__counts">
         <span>
@@ -115,10 +123,6 @@ export function TableMapPage({ onBack }: TableMapPageProps) {
       <div className="flea-map__legend">
         <TableStateLegend />
       </div>
-
-      {!hasAvailable && (
-        <FullCapacityNotice onJoinWaitlist={() => setPageView("waitlist")} />
-      )}
 
       <div className="flea-map__layout">
         <TableMap
@@ -304,7 +308,7 @@ function FullCapacityNotice({ onJoinWaitlist }: { onJoinWaitlist: () => void }) 
   const { t } = useLanguage();
   return (
     <section className="flea-paper-card flea-map__full-notice">
-      <h3 className="flea-map__full-notice-title">{t("table.allBookedTitle")}</h3>
+      <h2 className="flea-map__full-notice-title">{t("table.allBookedTitle")}</h2>
       <p className="flea-map__full-notice-body">{t("table.allBookedBody")}</p>
       <button
         type="button"

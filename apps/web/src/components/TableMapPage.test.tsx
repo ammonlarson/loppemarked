@@ -159,6 +159,44 @@ describe("TableMapPage", () => {
     expect(screen.getByText("table.joinWaitlistCta")).toBeDefined();
   });
 
+  it("hides the booking header and seller notes when sold out, and renders the notice first", async () => {
+    vi.stubGlobal("fetch", makeFetchMock(makeAllOccupied()));
+
+    const { TableMapPage } = await import("./TableMapPage");
+
+    await act(async () => {
+      render(<TableMapPage onBack={vi.fn()} />);
+    });
+
+    expect(screen.queryByText("table.pageTitle")).toBeNull();
+    expect(screen.queryByText("table.pageIntro")).toBeNull();
+    expect(screen.queryByText("table.notes.title")).toBeNull();
+
+    const section = document.querySelector(".flea-map");
+    const notice = section?.querySelector(".flea-map__full-notice");
+    const back = section?.querySelector(".flea-map__back");
+    expect(notice).not.toBeNull();
+    expect(back).not.toBeNull();
+    if (notice && back) {
+      expect(back.compareDocumentPosition(notice) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
+    }
+  });
+
+  it("shows the booking header and seller notes when at least one table is available", async () => {
+    vi.stubGlobal("fetch", makeFetchMock(makeAllAvailable()));
+
+    const { TableMapPage } = await import("./TableMapPage");
+
+    await act(async () => {
+      render(<TableMapPage onBack={vi.fn()} />);
+    });
+
+    expect(screen.getByText("table.pageTitle")).toBeDefined();
+    expect(screen.getByText("table.pageIntro")).toBeDefined();
+    expect(screen.getByText("table.notes.title")).toBeDefined();
+    expect(screen.queryByText("table.allBookedTitle")).toBeNull();
+  });
+
   it("switches into the waitlist form when the waitlist CTA is clicked", async () => {
     vi.stubGlobal("fetch", makeFetchMock(makeAllOccupied()));
 
