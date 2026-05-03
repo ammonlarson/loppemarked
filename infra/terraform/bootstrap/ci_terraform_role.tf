@@ -49,6 +49,12 @@ resource "aws_iam_role" "ci_terraform" {
     Name        = "${each.value.naming_prefix}-ci-terraform"
     environment = each.key
   }
+
+  # Losing this role wedges every CI terraform apply for the
+  # environment and recovery requires admin credentials.
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 data "aws_iam_policy_document" "ci_terraform_state" {
@@ -195,8 +201,11 @@ data "aws_iam_policy_document" "ci_terraform_resources" {
   }
 
   # The role's own permissions are managed by the bootstrap stack with
-  # admin credentials. Deny self-modification so a compromised CI run
-  # cannot escalate privileges via the policy it just used to authenticate.
+  # admin credentials. Deny self-modification of this role's trust
+  # policy and inline policies so a compromised CI run cannot widen
+  # the policies it authenticated with. Other roles in the
+  # naming-prefix scope remain mutable via the IAMRoles Allow above
+  # so the env apply can manage api-runtime / ci-deploy.
   statement {
     sid    = "DenySelfModify"
     effect = "Deny"
