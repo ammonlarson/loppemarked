@@ -99,85 +99,21 @@ terraform import aws_iam_openid_connect_provider.github \
   arn:aws:iam::<ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com
 ```
 
-### Migrating ci_terraform role from environment state to bootstrap state
+### Adding a new environment
 
-The `ci_terraform` role used to be created by the per-environment stack.
-On environments provisioned before that change, run the following one
-time before applying bootstrap. The commands relocate ownership of the
-existing role into bootstrap state without recreating it (the role ARN,
-trust policy, and inline policies stay the same).
+To stand up a third environment (e.g. `dev`):
 
-> **Run all of step 1 and step 2 in immediate succession.** Between
-> `terraform state rm` and the matching `terraform import`, the live
-> AWS role exists in no Terraform state. Any environment apply that
-> runs in that window will plan to recreate the role and fail with
-> `EntityAlreadyExists`.
-
-> **Preconditions.**
->
-> - Your working tree is on the branch / commit that introduces
->   `infra/terraform/bootstrap/ci_terraform_role.tf`. The
->   `terraform import` step reads bootstrap's local config to resolve
->   the resource addresses; on `main` (before this change) those
->   addresses do not exist and import will fail with `"resource
->   address … does not exist in the configuration"`.
-> - `terraform init` has been run in `infra/terraform/bootstrap/`
->   against the real S3 backend.
-
-```bash
-# 1. Drop the role + its inline policies from each environment's state.
-#    The env stacks wrap the module under `module.loppemarked_stack`,
-#    so the state addresses are module-prefixed.
-for ENV in staging prod; do
-  terraform -chdir=infra/terraform/environments/$ENV state rm \
-    module.loppemarked_stack.aws_iam_role.ci_terraform \
-    module.loppemarked_stack.aws_iam_role_policy.ci_terraform_state \
-    module.loppemarked_stack.aws_iam_role_policy.ci_terraform_resources
-done
-
-# 2. Import the role + policies into bootstrap state.
-cd infra/terraform/bootstrap
-terraform import 'aws_iam_role.ci_terraform["staging"]' \
-  loppemarked-staging-2026-ci-terraform
-terraform import 'aws_iam_role.ci_terraform["prod"]' \
-  loppemarked-prod-2026-ci-terraform
-terraform import 'aws_iam_role_policy.ci_terraform_state["staging"]' \
-  loppemarked-staging-2026-ci-terraform:terraform-state
-terraform import 'aws_iam_role_policy.ci_terraform_state["prod"]' \
-  loppemarked-prod-2026-ci-terraform:terraform-state
-terraform import 'aws_iam_role_policy.ci_terraform_resources["staging"]' \
-  loppemarked-staging-2026-ci-terraform:terraform-resources
-terraform import 'aws_iam_role_policy.ci_terraform_resources["prod"]' \
-  loppemarked-prod-2026-ci-terraform:terraform-resources
-
-# 3. Plan + apply.
-terraform plan -out=tfplan
-terraform apply tfplan
-```
-
-**Expected plan diff.** Bootstrap's `default_tags` (`project`,
-`season`, `managed_by`) match the env provider's, and the role
-explicitly sets `environment = each.key`, so no AWS tags should
-change. The plan should only show:
-
-- The two `aws_iam_role_policy.ci_terraform_resources` resources
-  updating `iam:PutRolePolicy` / `iam:DeleteRolePolicy` from the
-  `IAMRoles` Allow statement into the `DenySelfModify` deny
-  statement (a security tightening — the role no longer needs to
-  mutate its own inline policies because bootstrap does).
-- A move from un-keyed addresses (`aws_iam_role_policy.ci_terraform_state`)
-  to `for_each`-keyed addresses (`["staging"]`, `["prod"]`) — pure
-  state addressing, no AWS-side change.
-
-### Provisioning a new environment
-
-For environments added after this migration: apply `bootstrap/` first
-(adding the new environment to `var.ci_terraform_environments`), then
-apply the env stack. The env stack's `data "aws_iam_role" "ci_terraform"`
-lookup requires the role to already exist in IAM. If the env name in
-`bootstrap/variables.tf` does not match the `environment` input passed
-to the `loppemarked_stack` module, `terraform plan` will fail with a
-`no IAM role found` error from the data source.
+1. Add the env to `var.ci_terraform_environments` in
+   `infra/terraform/bootstrap/variables.tf`. The map key must match
+   the `environment` input you will pass to the `loppemarked_stack`
+   module from `environments/<env>/main.tf`. If the names drift,
+   `terraform plan` against the env stack fails with `no IAM role
+   found` from the `data "aws_iam_role" "ci_terraform"` lookup.
+2. From `infra/terraform/bootstrap/`, `terraform apply` with admin
+   credentials so the role is created before the env stack tries to
+   look it up.
+3. Create `environments/<env>/main.tf` and run `terraform init` /
+   `apply` there.
 
 ## Environment Init / Apply Workflow
 
