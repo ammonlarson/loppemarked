@@ -91,12 +91,20 @@ export function TableMapPage({ onBack }: TableMapPageProps) {
         &larr; {t("map.back")}
       </button>
 
-      <header className="flea-paper-card flea-map__header">
-        <h2 className="flea-map__title">{t("table.pageTitle")}</h2>
-        <p className="flea-map__intro">{t("table.pageIntro")}</p>
-      </header>
+      {!hasAvailable && (
+        <FullCapacityNotice onJoinWaitlist={() => setPageView("waitlist")} />
+      )}
 
-      <SellerNotes />
+      {hasAvailable && (
+        <>
+          <header className="flea-paper-card flea-map__header">
+            <h2 className="flea-map__title">{t("table.pageTitle")}</h2>
+            <p className="flea-map__intro">{t("table.pageIntro")}</p>
+          </header>
+
+          <SellerNotes />
+        </>
+      )}
 
       <hr className="flea-map__divider" aria-hidden="true" />
 
@@ -115,10 +123,6 @@ export function TableMapPage({ onBack }: TableMapPageProps) {
       <div className="flea-map__legend">
         <TableStateLegend />
       </div>
-
-      {!hasAvailable && (
-        <FullCapacityNotice onJoinWaitlist={() => setPageView("waitlist")} />
-      )}
 
       <div className="flea-map__layout">
         <TableMap
