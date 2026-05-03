@@ -8,6 +8,7 @@ export type AdminOpsEvent =
   | { type: "user_registration"; userName: string; userEmail: string; tableId: number }
   | { type: "user_switch"; userName: string; userEmail: string; oldTableId: number; newTableId: number }
   | { type: "user_cancellation"; userName: string; userEmail: string; tableId: number }
+  | { type: "user_waitlist_join"; userName: string; userEmail: string; position: number | null }
   | { type: "admin_table_reserve"; actingAdminId: string; tableId: number }
   | { type: "admin_table_release"; actingAdminId: string; tableId: number }
   | { type: "admin_registration_create"; actingAdminId: string; userName: string; tableId: number }
@@ -52,6 +53,14 @@ export function buildOpsNotificationEmail(eventWithEmail: AdminEventWithEmail | 
       subject = `Booking cancelled: ${event.userName} released ${tableLabel(event.tableId)}`;
       bodyText = `<strong>${escapeHtml(event.userName)}</strong> (${escapeHtml(event.userEmail)}) cancelled their booking for <strong>${escapeHtml(tableLabel(event.tableId))}</strong>. The table is held as <strong>reserved</strong> pending admin review — release it to the public pool from the Tables view when ready.`;
       break;
+    case "user_waitlist_join": {
+      const positionFragment = event.position !== null
+        ? ` They are now at position <strong>#${event.position}</strong>.`
+        : "";
+      subject = `New waitlist signup: ${event.userName}`;
+      bodyText = `<strong>${escapeHtml(event.userName)}</strong> (${escapeHtml(event.userEmail)}) joined the waitlist.${positionFragment}`;
+      break;
+    }
     case "admin_table_reserve":
       subject = `Table reserved: ${tableLabel(event.tableId)}`;
       bodyText = `Admin <strong>${escapeHtml(adminEmail)}</strong> reserved <strong>${escapeHtml(tableLabel(event.tableId))}</strong>.`;
@@ -101,7 +110,8 @@ function isUserEvent(event: AdminOpsEvent): boolean {
   return (
     event.type === "user_registration" ||
     event.type === "user_switch" ||
-    event.type === "user_cancellation"
+    event.type === "user_cancellation" ||
+    event.type === "user_waitlist_join"
   );
 }
 

@@ -151,6 +151,54 @@ describe("buildOpsNotificationEmail", () => {
     expect(result.bodyHtml).toContain("Table #7");
   });
 
+  it("builds user waitlist join email with position", () => {
+    const result = buildOpsNotificationEmail({
+      event: {
+        type: "user_waitlist_join",
+        userName: "Erin",
+        userEmail: "erin@test.com",
+        position: 3,
+      },
+    });
+
+    expect(result.subject).toContain("waitlist");
+    expect(result.subject).toContain("Erin");
+    expect(result.bodyHtml).toContain("Erin");
+    expect(result.bodyHtml).toContain("erin@test.com");
+    expect(result.bodyHtml).toContain("waitlist");
+    expect(result.bodyHtml).toContain("#3");
+  });
+
+  it("builds user waitlist join email when position is unknown", () => {
+    const result = buildOpsNotificationEmail({
+      event: {
+        type: "user_waitlist_join",
+        userName: "Frank",
+        userEmail: "frank@test.com",
+        position: null,
+      },
+    });
+
+    expect(result.subject).toContain("waitlist");
+    expect(result.bodyHtml).toContain("Frank");
+    expect(result.bodyHtml).toContain("frank@test.com");
+    expect(result.bodyHtml).not.toContain("position");
+  });
+
+  it("escapes HTML in waitlist join user name", () => {
+    const result = buildOpsNotificationEmail({
+      event: {
+        type: "user_waitlist_join",
+        userName: '<img src=x onerror=1>',
+        userEmail: "evil@test.com",
+        position: 1,
+      },
+    });
+
+    expect(result.bodyHtml).not.toContain("<img");
+    expect(result.bodyHtml).toContain("&lt;img");
+  });
+
   it("builds user cancellation email flagging admin review hold", () => {
     const result = buildOpsNotificationEmail({
       event: {
@@ -340,6 +388,33 @@ describe("notifyAdmins", () => {
     });
 
     expect(mockQueueAndSend).not.toHaveBeenCalled();
+  });
+
+  it("uses notify_user_registration preference for waitlist join events", async () => {
+    const mockQueueAndSend = vi.mocked(queueAndSendEmail);
+    mockQueueAndSend.mockClear();
+
+    const db = makeMockDb(
+      [
+        { id: "admin-1", email: "admin1@test.com" },
+        { id: "admin-2", email: "admin2@test.com" },
+      ],
+      [
+        { admin_id: "admin-2", notify_user_registration: false, notify_admin_table_action: true },
+      ],
+    );
+
+    await notifyAdmins(db, {
+      type: "user_waitlist_join",
+      userName: "Erin",
+      userEmail: "erin@test.com",
+      position: 2,
+    });
+
+    expect(mockQueueAndSend).toHaveBeenCalledTimes(1);
+    expect(mockQueueAndSend).toHaveBeenCalledWith(db, expect.objectContaining({
+      recipientEmail: "admin1@test.com",
+    }));
   });
 
   it("does not throw on database error", async () => {
