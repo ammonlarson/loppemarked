@@ -40,10 +40,10 @@ module "loppemarked_stack" {
 
   github_oidc_provider_arn = data.aws_iam_openid_connect_provider.github.arn
 
-  vpc_cidr             = "10.0.0.0/16"
+  vpc_cidr             = "10.2.0.0/16"
   availability_zones   = ["eu-north-1a", "eu-north-1b"]
-  public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnet_cidrs = ["10.0.10.0/24", "10.0.11.0/24"]
+  public_subnet_cidrs  = ["10.2.1.0/24", "10.2.2.0/24"]
+  private_subnet_cidrs = ["10.2.10.0/24", "10.2.11.0/24"]
   log_retention_days   = 14
 
   # Requester-side peering into the shared-db VPC (Phase B). db_secret_id is

@@ -405,8 +405,8 @@ graph TB
 
 | Environment | Domain                | VPC CIDR       | RDS Instance    |
 |-------------|----------------------|----------------|-----------------|
-| staging     | `staging.un17hub.com`| `10.0.0.0/16`  | `db.t4g.micro`  |
-| prod        | `un17hub.com`        | `10.1.0.0/16`  | `db.t4g.small`  |
+| staging     | `staging.un17hub.com`| `10.2.0.0/16`  | `db.t4g.micro`  |
+| prod        | `un17hub.com`        | `10.3.0.0/16`  | `db.t4g.small`  |
 
 ### Terraform Module Structure
 

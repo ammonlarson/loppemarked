@@ -20,8 +20,11 @@ resource "aws_vpc_peering_connection" "shared_db" {
   peer_vpc_id = var.shared_db_vpc_id
   auto_accept = true
 
+  # The accepter side (infra-shared-db) discovers this connection by an exact
+  # `tag:Name` match, so the rendered string must be byte-for-byte:
+  # loppemarked-staging-2026-shared-db-peering / loppemarked-prod-2026-shared-db-peering.
   tags = {
-    Name = "${var.project}-${var.environment}--${var.season}-shared-db-peering"
+    Name = "${local.naming_prefix}-shared-db-peering"
   }
 
   lifecycle {
