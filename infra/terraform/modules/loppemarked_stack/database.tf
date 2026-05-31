@@ -146,6 +146,17 @@ resource "aws_db_instance" "main" {
   tags = {
     Name = "${local.naming_prefix}-postgres"
   }
+
+  # A VPC re-IP replaces the VPC and its private subnets. The instance cannot
+  # stay in subnets that are being destroyed, so it is torn down and recreated
+  # (empty) in the new subnets. Tying replacement to the VPC id makes Terraform
+  # destroy the instance before the old subnets, instead of deadlocking on the
+  # subnet delete while the RDS ENI is still attached. staging skips the
+  # automatic final snapshot, so take a manual snapshot before a re-IP apply
+  # (the static identifier path would otherwise collide on a re-run).
+  lifecycle {
+    replace_triggered_by = [aws_vpc.main.id]
+  }
 }
 
 # ---------- RDS Enhanced Monitoring Role ----------
