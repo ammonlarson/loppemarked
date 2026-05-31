@@ -23,6 +23,15 @@ resource "aws_db_subnet_group" "main" {
   tags = {
     Name = "${local.naming_prefix}-db-subnet-group"
   }
+
+  # A DB subnet group's VPC is immutable: when a re-IP moves the private subnets
+  # into a new VPC, AWS rejects an in-place ModifyDBSubnetGroup ("new Subnets are
+  # not in the same Vpc"). Force a replace on a VPC id change so the group is
+  # recreated in the new VPC instead. The RDS instance (which also replaces on
+  # the VPC id) is torn down first, so the old group is free to be destroyed.
+  lifecycle {
+    replace_triggered_by = [aws_vpc.main.id]
+  }
 }
 
 # ---------- RDS Parameter Group ----------
