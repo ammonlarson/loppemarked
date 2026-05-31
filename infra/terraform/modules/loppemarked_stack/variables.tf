@@ -47,6 +47,36 @@ variable "private_subnet_cidrs" {
   type        = list(string)
 }
 
+# ---------- Shared DB (cross-VPC) ----------
+#
+# Phase B of the shared-db migration. The shared-db VPC and per-environment
+# credential secrets are owned by infra-shared-db (Phase A). These inputs wire
+# requester-side peering and the runtime secret switch. They default to null so
+# the module stays self-contained until an environment opts in.
+
+variable "shared_db_vpc_id" {
+  description = "VPC id of the shared-db VPC to peer with (Phase A output from infra-shared-db). Null disables requester-side peering."
+  type        = string
+  default     = null
+}
+
+variable "shared_db_cidr" {
+  description = "CIDR block of the shared-db VPC, used for the requester-side peering route. Required when shared_db_vpc_id is set."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.shared_db_cidr == null || can(cidrhost(var.shared_db_cidr, 0))
+    error_message = "shared_db_cidr must be a valid CIDR block or null."
+  }
+}
+
+variable "db_secret_id" {
+  description = "Secrets Manager id/name of the shared-db credentials secret (e.g. rds/shared/loppemarked_staging). When set, the API runtime builds its DB connection from this secret instead of the dedicated DB env vars. Null keeps the dedicated DB active (no cutover)."
+  type        = string
+  default     = null
+}
+
 # ---------- IAM / CI ----------
 
 variable "github_oidc_provider_arn" {

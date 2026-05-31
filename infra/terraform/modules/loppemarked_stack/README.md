@@ -14,6 +14,7 @@ the staging and production environment stacks.
 | `dns.tf`         | Route 53 hosted zone, SES verification/DKIM DNS records    |
 | `monitoring.tf`  | CloudWatch log groups, KMS encryption key, optional dashboard / alarms / SNS topic |
 | `api_runtime.tf` | API Lambda function, function URL, EventBridge schedules   |
+| `peering.tf`     | Requester-side VPC peering into the shared-db VPC + private route |
 | `amplify.tf`     | Amplify app, branch, and custom domain association         |
 
 ## Least-privilege IAM
@@ -59,6 +60,15 @@ its `environment.variables` block:
 | `EMAIL_FROM`     | `var.ses_sender_email` or `loppemarked@<ses_sender_domain>`            |
 | `EMAIL_REPLY_TO` | `var.ses_reply_to_email`                                               |
 | `PUBLIC_WEB_URL` | `https://<amplify_domain_prefix>.<ses_sender_domain>`                  |
+| `DB_SECRET_ID`   | `var.db_secret_id` (injected only when set)                            |
+
+Database connection wiring has two modes. By default the runtime uses the
+dedicated RDS instance via `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` and
+fetches only the password from `DB_SECRET_ARN`. When `var.db_secret_id` is set,
+`DB_SECRET_ID` is injected and the runtime instead builds the entire connection
+from that shared-db secret payload (`host`, `port`, `database`, `username`,
+`password`). The shared-db path stays dormant until an environment opts in, so
+this module ships peering and IAM wiring without cutting traffic over.
 
 `PUBLIC_WEB_URL` anchors outbound email links such as the resident
 self-cancellation magic link. With the current variable defaults this resolves
@@ -75,6 +85,9 @@ to `https://loppemarked.staging.un17hub.com` for staging and
 | `ses_reply_to_email`          | Default Reply-To (defaults to `ammonl@hotmail.com`)  |
 | `db_instance_class`           | RDS instance class                                   |
 | `enable_observability_alerts` | Provision the dashboard, metric alarms, and alerting SNS topic. Defaults to `true`; staging sets it to `false`. |
+| `shared_db_vpc_id`            | Shared-db VPC id to peer with (Phase A output). Null disables peering. |
+| `shared_db_cidr`              | Shared-db VPC CIDR for the peering route. Required when `shared_db_vpc_id` is set. |
+| `db_secret_id`                | Shared-db credentials secret id/name. When set, the runtime reads its DB connection from this secret. Null keeps the dedicated DB active. |
 
 See `variables.tf` for the full list with descriptions and defaults.
 

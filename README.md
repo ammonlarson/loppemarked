@@ -98,6 +98,7 @@ The Next.js dev server starts on `http://localhost:3000` and proxies API routes 
 | `DB_USER`             | `loppemarked`  | Database user                   |
 | `DB_PASSWORD`         | (empty)       | Database password               |
 | `DB_SSL`              | `false`       | Enable SSL for DB connection    |
+| `DB_SECRET_ID`        | (unset)       | Deployed runtime only: when set, the connection is built entirely from this Secrets Manager secret (`host`, `port`, `database`, `username`, `password`) instead of the dedicated `DB_*` vars |
 | `API_PORT`            | `3001`        | Local dev server port           |
 | `SEED_ADMIN_PASSWORD` | `changeme123` | Initial admin password for seed |
 

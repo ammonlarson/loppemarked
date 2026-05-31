@@ -1,5 +1,6 @@
 import { TABLE_CATALOG } from "@loppemarked/shared";
 import { createDatabase } from "./db/connection.js";
+import type { DatabaseConfig } from "./db/connection.js";
 import { migrateToLatestInline } from "./db/migration-registry.js";
 import { seed } from "./db/seed.js";
 import { hashPassword } from "./lib/password.js";
@@ -145,6 +146,17 @@ function isScheduledEvent(event: LambdaEvent): event is ScheduledEvent {
 let router: Router | undefined;
 let db: ReturnType<typeof createDatabase> | undefined;
 
+async function fetchSecretJson(secretId: string): Promise<Record<string, string>> {
+  const { SecretsManagerClient, GetSecretValueCommand } = await import(
+    "@aws-sdk/client-secrets-manager"
+  );
+  const client = new SecretsManagerClient({});
+  const result = await client.send(
+    new GetSecretValueCommand({ SecretId: secretId }),
+  );
+  return JSON.parse(result.SecretString ?? "{}") as Record<string, string>;
+}
+
 async function resolveDbPassword(): Promise<string> {
   if (process.env["DB_PASSWORD"]) {
     return process.env["DB_PASSWORD"];
@@ -153,28 +165,41 @@ async function resolveDbPassword(): Promise<string> {
   if (!secretArn) {
     return "";
   }
-  const { SecretsManagerClient, GetSecretValueCommand } = await import(
-    "@aws-sdk/client-secrets-manager"
-  );
-  const client = new SecretsManagerClient({});
-  const result = await client.send(
-    new GetSecretValueCommand({ SecretId: secretArn }),
-  );
-  const secret = JSON.parse(result.SecretString ?? "{}") as Record<string, string>;
+  const secret = await fetchSecretJson(secretArn);
   return secret["password"] ?? "";
+}
+
+async function resolveDbConfig(): Promise<DatabaseConfig> {
+  // Shared-db model: a single secret carries the full connection. Reads
+  // `database` (the shared-db contract key), not the RDS-managed `dbname`.
+  const sharedSecretId = process.env["DB_SECRET_ID"];
+  if (sharedSecretId) {
+    const secret = await fetchSecretJson(sharedSecretId);
+    return {
+      host: secret["host"] ?? "",
+      port: Number(secret["port"] ?? "5432"),
+      database: secret["database"] ?? "",
+      user: secret["username"] ?? "",
+      password: secret["password"] ?? "",
+      ssl: process.env["DB_SSL"] !== "false",
+    };
+  }
+
+  // Dedicated-db model (default until Phase D): connection details come from
+  // env vars and only the password is fetched from DB_SECRET_ARN.
+  return {
+    host: process.env["DB_HOST"] ?? "localhost",
+    port: Number(process.env["DB_PORT"] ?? "5433"),
+    database: process.env["DB_NAME"] ?? "loppemarked",
+    user: process.env["DB_USER"] ?? "loppemarked",
+    password: await resolveDbPassword(),
+    ssl: process.env["DB_SSL"] === "true",
+  };
 }
 
 async function ensureDb(): Promise<ReturnType<typeof createDatabase>> {
   if (!db) {
-    const password = await resolveDbPassword();
-    db = createDatabase({
-      host: process.env["DB_HOST"] ?? "localhost",
-      port: Number(process.env["DB_PORT"] ?? "5433"),
-      database: process.env["DB_NAME"] ?? "loppemarked",
-      user: process.env["DB_USER"] ?? "loppemarked",
-      password,
-      ssl: process.env["DB_SSL"] === "true",
-    });
+    db = createDatabase(await resolveDbConfig());
   }
   return db;
 }

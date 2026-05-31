@@ -1,3 +1,14 @@
+# ---------- Shared-DB Secret Lookup ----------
+#
+# Resolves the shared-db credentials secret owned by infra-shared-db so its ARN
+# can scope runtime IAM and its id can be injected as DB_SECRET_ID. Only looked
+# up when an environment opts into the shared-db secret.
+
+data "aws_secretsmanager_secret" "shared_db" {
+  count = var.db_secret_id != null ? 1 : 0
+  name  = var.db_secret_id
+}
+
 # ---------- Lambda Function ----------
 
 resource "aws_lambda_function" "api" {
@@ -16,18 +27,23 @@ resource "aws_lambda_function" "api" {
   }
 
   environment {
-    variables = {
-      DB_HOST        = aws_db_instance.main.address
-      DB_PORT        = tostring(aws_db_instance.main.port)
-      DB_NAME        = var.db_name
-      DB_USER        = var.db_master_username
-      DB_SECRET_ARN  = aws_secretsmanager_secret.db_credentials.arn
-      DB_SSL         = "true"
-      ENVIRONMENT    = var.environment
-      EMAIL_FROM     = coalesce(var.ses_sender_email, "loppemarked@${var.ses_sender_domain}")
-      EMAIL_REPLY_TO = var.ses_reply_to_email
-      PUBLIC_WEB_URL = "https://${var.amplify_domain_prefix}.${var.ses_sender_domain}"
-    }
+    # DB_SECRET_ID is injected only when an environment opts into the shared-db
+    # secret. While absent, the runtime uses the dedicated DB env vars below.
+    variables = merge(
+      {
+        DB_HOST        = aws_db_instance.main.address
+        DB_PORT        = tostring(aws_db_instance.main.port)
+        DB_NAME        = var.db_name
+        DB_USER        = var.db_master_username
+        DB_SECRET_ARN  = aws_secretsmanager_secret.db_credentials.arn
+        DB_SSL         = "true"
+        ENVIRONMENT    = var.environment
+        EMAIL_FROM     = coalesce(var.ses_sender_email, "loppemarked@${var.ses_sender_domain}")
+        EMAIL_REPLY_TO = var.ses_reply_to_email
+        PUBLIC_WEB_URL = "https://${var.amplify_domain_prefix}.${var.ses_sender_domain}"
+      },
+      var.db_secret_id != null ? { DB_SECRET_ID = var.db_secret_id } : {}
+    )
   }
 
   reserved_concurrent_executions = var.lambda_reserved_concurrency
