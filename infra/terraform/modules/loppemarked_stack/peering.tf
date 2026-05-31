@@ -21,7 +21,7 @@ resource "aws_vpc_peering_connection" "shared_db" {
   auto_accept = true
 
   tags = {
-    Name = "${local.naming_prefix}-shared-db-peering"
+    Name = "${var.project}-${var.environment}--${var.season}-shared-db-peering"
   }
 
   lifecycle {
