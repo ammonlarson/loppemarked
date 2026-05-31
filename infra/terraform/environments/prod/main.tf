@@ -47,6 +47,12 @@ module "loppemarked_stack" {
   private_subnet_cidrs = ["10.1.10.0/24", "10.1.11.0/24"]
   log_retention_days   = 90
 
+  # Requester-side peering into the shared-db VPC (Phase B). db_secret_id is
+  # intentionally left unset here: the dedicated DB stays active until the
+  # Phase D cutover wires DB_SECRET_ID = "rds/shared/loppemarked_prod".
+  shared_db_vpc_id   = "vpc-908203f9"
+  shared_db_vpc_cidr = "172.31.0.0/16"
+
   db_instance_class        = "db.t4g.micro"
   db_allocated_storage     = 20
   db_max_allocated_storage = 100
