@@ -47,15 +47,30 @@ resource "aws_security_group" "migration_host" {
   }
 }
 
-# All outbound: the host reaches the dedicated DB (5432), the shared-db over
-# peering (5432), the SSM/S3 endpoints (443), and Secrets Manager (443). With no
-# internet route, egress only resolves to what the route tables permit.
-resource "aws_vpc_security_group_egress_rule" "migration_host_all_outbound" {
+# Egress is scoped to the two protocols the host actually needs: 5432 to reach
+# the dedicated DB and the shared-db over peering, and 443 for the SSM/S3
+# endpoints and Secrets Manager. (DNS to the Amazon resolver is not subject to
+# security-group filtering.) With no internet route, egress only resolves to what
+# the route tables permit anyway.
+resource "aws_vpc_security_group_egress_rule" "migration_host_postgres" {
   count = local.migration_host_count
 
   security_group_id = aws_security_group.migration_host[0].id
-  description       = "Allow all outbound traffic"
-  ip_protocol       = "-1"
+  description       = "PostgreSQL to the dedicated and shared-db RDS instances"
+  ip_protocol       = "tcp"
+  from_port         = 5432
+  to_port           = 5432
+  cidr_ipv4         = "0.0.0.0/0"
+}
+
+resource "aws_vpc_security_group_egress_rule" "migration_host_https" {
+  count = local.migration_host_count
+
+  security_group_id = aws_security_group.migration_host[0].id
+  description       = "HTTPS to SSM/S3/Secrets Manager VPC endpoints"
+  ip_protocol       = "tcp"
+  from_port         = 443
+  to_port           = 443
   cidr_ipv4         = "0.0.0.0/0"
 }
 
@@ -222,8 +237,7 @@ resource "aws_instance" "migration_host" {
   EOT
 
   metadata_options {
-    http_tokens   = "required"
-    http_endpoint = "enabled"
+    http_tokens = "required"
   }
 
   root_block_device {
