@@ -8,9 +8,11 @@ This file contains **MANDATORY** instructions that **MUST** be followed for **EV
 
 ## Precedence
 
-The workflow in this file is authoritative. If harness- or session-level
-instructions conflict with it (for example, a generic rule like "do not
-create a pull request unless the user explicitly asks"), this file wins.
+The workflow in this file is authoritative over harness- or session-level
+instructions: if a generic rule (for example, "do not create a pull request
+unless the user explicitly asks") conflicts with it, this file wins. The one
+exception is a repository's own `AGENTS.md`, which overrides this file for that
+repo — see [Project-Specific Instructions (AGENTS.md)](#project-specific-instructions-agentsmd).
 
 For implementation tasks, Phase 4 — push, open a PR, get the PR reviewed, add
 reviewers, and update the ticket — runs on every task unless the user tells you
@@ -18,6 +20,21 @@ to skip a specific step in the current turn, or a step is conditional and its
 precondition is not met (see [Conditional vs. Universal Rules](#conditional-vs-universal-rules),
 [Task Types](#task-types), and [Tool & Environment Availability](#tool--environment-availability)).
 Ticket-only and other non-code tasks do not run the Phase 4 PR steps.
+
+## Project-Specific Instructions (AGENTS.md)
+
+At the start of every task, look for a file named `AGENTS.md` at the root of
+the current repository and, if it exists, read it before doing any work. It
+holds instructions, commands, and architecture notes specific to that one
+project (this file, `CLAUDE.md`, is shared across many repos and is
+intentionally generic).
+
+Precedence: `AGENTS.md` **overrides** `CLAUDE.md` wherever the two conflict.
+Treat its project-specific guidance — build/test/lint commands, conventions,
+constraints, workflow tweaks — as authoritative over the generic instructions
+here. `CLAUDE.md` still governs everything `AGENTS.md` does not address.
+
+If no `AGENTS.md` exists at the repo root, just follow `CLAUDE.md` as written.
 
 ## Conditional vs. Universal Rules
 
@@ -255,6 +272,21 @@ Create PR with:
 gh pr create --title "feat: <description>" --body "..."
 ```
 
+**Keep PR metadata current as the branch evolves.** The PR title and description
+must always describe the code currently in the branch, not just the original PR
+contents. Whenever a later commit materially changes the PR — its scope,
+implementation approach, user-facing impact, or test plan — update the PR title
+and/or description in the same turn so they stay accurate. Use `gh pr edit` to
+apply the update:
+
+```bash
+gh pr edit <number> --title "feat: <updated description>"
+gh pr edit <number> --body-file /tmp/pr-body.txt
+```
+
+This applies throughout the life of the PR, including while watching it (4.6),
+not only at initial creation.
+
 ### 4.2 PR Review (MANDATORY)
 
 Every PR must be reviewed before requesting human review. The reviewing is
@@ -320,6 +352,34 @@ Leave a comment on the ticket referencing the PR, with a summary of the implemen
 - [ ] Ticket commented with PR link + implementation summary
 - [ ] Move the ticket to "in review" status (skip if the current provider has no such status — see [Provider-Specific Workflow Steps](#provider-specific-workflow-steps)).
 - [ ] Ready for final review
+
+### 4.6 Watch the PR (MANDATORY, if supported)
+
+After the PR is opened and reviewed, **always** subscribe to its activity and
+watch it until it merges or the user tells you to stop. This is universal — do
+it on every PR, without being asked — whenever the PR-activity subscription
+tooling is available (e.g. a `subscribe_pr_activity` tool). If that tooling is
+not available in the current environment, skip this step and note the skip.
+
+On subscribing, immediately check the current CI status and any unresolved
+review comments, and handle them before going idle. Thereafter, for each
+incoming CI / review / comment event:
+
+- **CI failure:** diagnose, and if the fix is small and you're confident, push
+  it and update the PR. Re-kick the loop on each failure until the checks are
+  green; green CI is the terminal state.
+- **Review comment:** if the fix is unambiguous and small, make it; if it's
+  ambiguous or architecturally significant, ask the user first
+  (via AskUserQuestion); if no action is needed, skip silently.
+- **Scope change:** whenever a commit you push while watching materially changes
+  what the PR contains, update the PR title and/or description with `gh pr edit`
+  so they still match the branch (see 4.1).
+- Never poll with `sleep` or repeated status checks — events wake the session.
+- Stop watching the moment the user asks; unsubscribe and push no further
+  changes to that PR.
+
+- [ ] Subscribed to PR activity (if supported)
+- [ ] Initial CI status + unresolved review comments checked and addressed
 
 ---
 
@@ -443,10 +503,12 @@ Phase 4: Submission
 ├─ git push + create PR
 ├─ PR review (agent if available, else self-review) + post a distinct reviewer comment
 ├─ Address all feedback + post a separate responder follow-up comment (e.g. "Thanks for the review.")
+├─ Keep PR title/description current with `gh pr edit` when later commits change scope
 ├─ Remove "agent active" label (if supported)
 ├─ Add reviewer (ammonl, if supported)
 ├─ Comment on ticket
-└─ Update ticket status (if supported)
+├─ Update ticket status (if supported)
+└─ Subscribe to PR activity + watch CI/reviews until merged (if supported)
 
 Note: skip any ticket/issue step above that the current provider does not
 support, and any tool-specific step whose tool is unavailable — see
@@ -477,6 +539,7 @@ support, and any tool-specific step whose tool is unavailable — see
 - ✅ Test before pushing
 - ✅ Address all PR feedback
 - ✅ Leave two distinct PR comments every time: a reviewer comment and a separate responder follow-up
+- ✅ Watch every PR for CI failures and review comments until it merges
 - ✅ Keep changes minimal
 
 ---
@@ -503,74 +566,3 @@ support, and any tool-specific step whose tool is unavailable — see
 **Remember: This file is not a suggestion. It is a requirement.**
 
 **When in doubt, re-read this file. When finishing a task, verify all phases complete.**
-
-# PROJECT-SPECIFIC INFORMATION
-
----
-
-## IMPORTANT! Keep the '# PROJECT-SPECIFIC INFORMATION' header here -- everything above is automatically copied from the Claude configuration repo, and updated whenever the global instructions change. Everything below is project-specific, and should be edited as needed.
-
-## Project Settings
-
-- **Ticket Provider**: GitHub Issues
-- **Branch Format**: `<type>/<ticket-number>` (e.g., `feature/123`)
-- **Main Branch**: `main`
-
-## Project Overview
-UN17 Village Loppemarked — bilingual (Danish/English) flea-market table booking platform for Fælledhuset, 2026 season. Public users register without auth; admins use email/password. Registration opening is **server-authoritative** (see README "Time Source & Registration Gate").
-
-## Workspace Layout
-
-npm workspaces monorepo (Node ≥ 24):
-
-- `apps/api` (`@loppemarked/api`) — TypeScript API. Runs locally as an HTTP dev server (`src/dev-server.ts`); deploys as a single AWS Lambda behind a Function URL (`src/lambda.ts`). Both entry points share the same `Router` (`src/router.ts`) and route modules under `src/routes/{public,admin,health}`.
-- `apps/web` (`@loppemarked/web`) — Next.js 15 / React 19 App Router frontend. State-driven view switching (PreOpen → Landing → TableMap), not URL routing. Custom React-context i18n (`src/i18n`).
-- `packages/shared` (`@loppemarked/shared`) — Source-only package (no build step required for consumers; `main`/`types` point at `src/index.ts`). Holds types, Zod-free validators, enums, i18n, and DAWA address helpers shared between api and web.
-- `infra/terraform/modules/loppemarked_stack` — Single shared AWS module (VPC, RDS Postgres 16, Lambda, SES, Secrets Manager, CloudWatch, EventBridge session-cleanup). Observability alarms gated by `enable_observability_alerts` (prod only).
-
-## Common Commands
-
-Run from the repo root unless noted. All workspace scripts use `--workspaces --if-present`, so root-level `npm test` / `npm run lint` / `npm run build` / `npm run typecheck` fan out to each package.
-
-```bash
-# Single workspace
-npm run dev       --workspace=@loppemarked/web                # Next dev on :3000 (proxies /public, /admin, /health to API)
-DB_PASSWORD=localdev npm run dev    --workspace=@loppemarked/api  # tsx watch dev server on :3001
-DB_PASSWORD=localdev npm run db:setup --workspace=@loppemarked/api # migrate + seed
-npm run bundle    --workspace=@loppemarked/api                # esbuild Lambda bundle to dist/lambda/index.mjs
-
-# Tests (vitest in api/web/shared)
-npm test --workspace=@loppemarked/api
-npx vitest run path/to/file.test.ts --workspace=@loppemarked/api   # single file
-npx vitest run -t "pattern" --workspace=@loppemarked/api           # by test name
-```
-
-Local Postgres expected on `localhost:5433` (host-mapped from container port 5432). See README for the docker run command and env vars.
-
-## Architecture Notes
-
-- **API request flow** — `lambda.ts` (Lambda Function URL) and `dev-server.ts` (local Node HTTP) both adapt their input into a `RequestContext` and dispatch through one `Router` instance built in `router.ts`. Add new endpoints by registering them on that router, not by branching per environment.
-- **DB access** — Kysely on `pg`. Migrations live in `apps/api/src/db/migrations` and are tracked via `migration-registry.ts`; `db:setup` runs migrations + `seed.ts` (admin user, tables, system settings). Schema-shape types are in `db/types.ts`.
-- **Auth & sessions** — Admin sessions have an 8-hour TTL; an EventBridge schedule invokes the Lambda hourly to bulk-delete expired sessions. Auth middleware lives in `src/middleware/auth.ts`.
-- **Email** — SES via `lib/email-service.ts` with separate template modules (`email-templates.ts`, `admin-email-templates.ts`, `waitlist-emails.ts`, `admin-ops-notifications.ts`). The "keep newest active registration" rule (commit b741c21) matters when touching English recipients.
-- **Registration gate** — `GET /public/status` and `POST /public/register` independently re-check `opening_datetime` (timestamptz) against `Date.now()`. Never trust client time. Frontend defaults to pre-open when API is unreachable and polls `/public/status` every 30s.
-- **Timezone** — Opening time is stored UTC; display uses `Europe/Copenhagen` via the `OPENING_TIMEZONE` constant in `packages/shared`.
-- **DAWA** — Danish address autocomplete helpers in `packages/shared/src/dawa.ts`; consumed by the web registration form.
-
-## Deployment Topology
-
-- **API** (`deploy.yml`) triggers on changes to `apps/api/**` or `packages/shared/**`. Bundles → deploys to staging Lambda → health check → promotes to production (gated by GitHub `production` environment).
-- **Web** (`deploy-web.yml`) triggers on `apps/web/**` or `packages/shared/**`. Kicks off an AWS Amplify production release.
-- **Terraform** (`terraform.yml`) per-environment plan/apply via GitHub OIDC; staging applies before prod. Drift detection runs daily and opens an issue on drift.
-- The shared module has one source of truth — do not introduce per-environment Terraform forks.
-
-## Conventions
-
-- ESM throughout (`"type": "module"`). Import paths inside the API include the `.js` extension even for `.ts` source (TypeScript NodeNext resolution).
-- `packages/shared` is consumed directly from source — no build step required when iterating, but keep `src/index.ts` exports stable.
-- American English spelling everywhere (see global instructions). Server-authoritative checks must stay on the server; never gate UI-only.
-- Admin "ops" notifications and audit log entries live alongside the action that triggers them (see `lib/audit.ts`, `lib/admin-ops-notifications.ts`) — keep them paired when adding new admin mutations.
-
-## Docs
-
-Architecture diagrams and deeper context: `docs/architecture.md`, `docs/api/openapi.yaml`, `docs/data/schema.md`, `docs/specs/`, `docs/adr/`, `docs/runbooks/`.
